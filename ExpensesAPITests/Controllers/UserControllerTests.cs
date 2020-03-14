@@ -24,7 +24,7 @@ namespace ExpensesAPITests.Controllers
             using(var context = GetContextWithData())
             {
                 var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccesor(context);
+                var contextAccessor = new FakeHttpContextAccessor(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
                 var scopeRepository = new ScopeRepository(context);
                 var unitOfWork = new EFUnitOfWork(context);
@@ -45,7 +45,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData(noUser: true))
             {
                 var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccesor(context);
+                var contextAccessor = new FakeHttpContextAccessor(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
                 var scopeRepository = new ScopeRepository(context);
                 var unitOfWork = new EFUnitOfWork(context);
@@ -65,7 +65,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData())
             {
                 var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccesor(context);
+                var contextAccessor = new FakeHttpContextAccessor(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
                 var scopeRepository = new ScopeRepository(context);
                 var unitOfWork = new EFUnitOfWork(context);
@@ -86,7 +86,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData())
             {
                 var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccesor(context);
+                var contextAccessor = new FakeHttpContextAccessor(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
                 var scopeRepository = new ScopeRepository(context);
                 var unitOfWork = new EFUnitOfWork(context);
@@ -108,7 +108,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData())
             {
                 var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccesor(context);
+                var contextAccessor = new FakeHttpContextAccessor(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
                 var scopeRepository = new ScopeRepository(context);
                 var unitOfWork = new EFUnitOfWork(context);
@@ -129,7 +129,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData())
             {
                 var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccesor(context);
+                var contextAccessor = new FakeHttpContextAccessor(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
                 var scopeRepository = new ScopeRepository(context);
                 var unitOfWork = new EFUnitOfWork(context);

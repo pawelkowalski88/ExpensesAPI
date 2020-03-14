@@ -6,6 +6,7 @@ using ExpensesAPI.Persistence;
 using ExpensesAPI.Resources;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,20 @@ namespace ExpensesAPITests.Controllers
     [TestFixture]
     class ExpenseControllerTests
     {
+        private Mock<IExpenseRepository> repository;
+        private Mock<IUserRepository> userRepository;
+        private Mock<IUnitOfWork> unitOfWork;
+        private IMapper mapper;
+
+        [SetUp]
+        public void Setup()
+        {
+            repository = new Mock<IExpenseRepository>();
+            userRepository = new Mock<IUserRepository>();
+            unitOfWork = new Mock<IUnitOfWork>();
+            mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+        }
+
         #region GetExpenses
         [Test]
         public async Task GetExpensesReturns4RowsAsync()
@@ -26,12 +41,11 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                //var repository = new ExpenseRepository(context);
+                //var userRepository = new UserRepository(context);
+                //var unitOfWork = new EFUnitOfWork(context);
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, new FakeHttpContextAccessor(context));
 
                 var request = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okResult = request as OkObjectResult;
@@ -66,7 +80,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var request = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var notFoundResult = request as NotFoundObjectResult;
@@ -86,7 +100,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var request = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var notFoundResult = request as NotFoundObjectResult;
@@ -109,7 +123,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var date = DateTime.Now;
 
@@ -149,7 +163,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var date = DateTime.Now;
 
@@ -237,7 +251,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var date = DateTime.Now;
 
@@ -306,7 +320,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var date = DateTime.Now;
 
@@ -489,7 +503,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
@@ -522,7 +536,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
@@ -561,7 +575,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
@@ -595,7 +609,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
@@ -628,7 +642,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
@@ -666,7 +680,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
 
                 var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;

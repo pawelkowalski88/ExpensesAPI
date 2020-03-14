@@ -1,6 +1,8 @@
-﻿using ExpensesAPI.Persistence;
+﻿using ExpensesAPI.Models;
+using ExpensesAPI.Persistence;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,20 +11,24 @@ using System.Threading;
 
 namespace ExpensesAPITests.Controllers
 {
-    class FakeHttpContextAccesor : IHttpContextAccessor
+    class FakeHttpContextAccessor : IHttpContextAccessor
     {
         private readonly MainDbContext context;
+        private readonly bool noUser;
 
-        public FakeHttpContextAccesor(MainDbContext context)
+        public FakeHttpContextAccessor(MainDbContext context) : this(context, false) { }
+
+        public FakeHttpContextAccessor(MainDbContext context, bool noUser)
         {
             this.context = context;
+            this.noUser = noUser;
         }
 
         public HttpContext HttpContext
         {
             get
             {
-                return new FakeHttpContext(context);
+                return new FakeHttpContext(context, noUser);
             }
 
             set => throw new NotImplementedException();
@@ -32,10 +38,12 @@ namespace ExpensesAPITests.Controllers
     class FakeHttpContext : HttpContext
     {
         private readonly MainDbContext context;
+        private readonly bool noUser;
 
-        public FakeHttpContext(MainDbContext context)
+        public FakeHttpContext(MainDbContext context, bool noUser)
         {
             this.context = context;
+            this.noUser = noUser;
         }
         public override IFeatureCollection Features => throw new NotImplementedException();
 
@@ -51,8 +59,8 @@ namespace ExpensesAPITests.Controllers
         {
             get
             {
-                var user = context.Users.FirstOrDefault(s => s.FirstName == "Zenek");
-                if (user != null)
+                var user = new User { FirstName = "Zenek" };
+                if (noUser == false)
                     return new ClaimsPrincipal(new List<ClaimsIdentity>
                         {
                             new ClaimsIdentity(new List<Claim>{ new Claim("id", user.Id) })

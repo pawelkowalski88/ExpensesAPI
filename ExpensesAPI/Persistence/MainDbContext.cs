@@ -11,6 +11,8 @@ namespace ExpensesAPI.Persistence
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Scope> Scopes { get; set; }
 
+        public MainDbContext() { }
+
         public MainDbContext(DbContextOptions<MainDbContext> options) : base(options)
         {
             this.Database.EnsureCreated();

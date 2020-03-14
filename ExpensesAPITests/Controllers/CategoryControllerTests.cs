@@ -4,13 +4,17 @@ using ExpensesAPI.Mapping;
 using ExpensesAPI.Models;
 using ExpensesAPI.Persistence;
 using ExpensesAPI.Resources;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -19,157 +23,140 @@ namespace ExpensesAPITests.Controllers
     [TestFixture]
     class CategoryControllerTests
     {
+        private Mock<ICategoryRepository> repository;
+        private Mock<IScopeRepository> scopeRepository;
+        private Mock<IUserRepository> userRepository;
+        private Mock<IUnitOfWork> unitOfWork;
+        private Mapper mapper;
+        private Mock<MainDbContext> context;
+        private IHttpContextAccessor httpContextAccessor;
+
+        [SetUp]
+        public void Setup()
+        {
+            repository = new Mock<ICategoryRepository>();
+            scopeRepository = new Mock<IScopeRepository>();
+            userRepository = new Mock<IUserRepository>();
+            unitOfWork = new Mock<IUnitOfWork>();
+            mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            context = new Mock<MainDbContext>();
+            httpContextAccessor = new FakeHttpContextAccessor(context.Object);
+        }
+
         [Test]
         public async Task GetCategoriesReturns4Categories()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                    .Returns(Task.Run(() => new List<Category> {
+                        new Category { Name = "Category1", ScopeId = 1 },
+                        new Category { Name = "Category2", ScopeId = 1 },
+                        new Category { Name = "Category3", ScopeId = 1 },
+                        new Category { Name = "Category4", ScopeId = 1 }
+                    }));
 
-                var result = await controller.GetCategories(false);
-                var okResult = result as OkObjectResult;
-                var categories = okResult.Value as List<CategoryResource>;
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
 
-                Assert.AreEqual(4, categories.Count);
-            }
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+
+            var result = await controller.GetCategories(false);
+            var okResult = result as OkObjectResult;
+            var categories = okResult.Value as List<CategoryResource>;
+
+            Assert.AreEqual(4, categories.Count);
+            //}
         }
 
         [Test]
         public async Task GetCategoriesReturnsNotFoundOnNoScopeSelected()
         {
-            int category;
-            using (var context = GetContextWithData(out category, noScope: true))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
 
-                var result = await controller.GetCategories(false);
-                var notFoundResult = result as NotFoundObjectResult;
+            var result = await controller.GetCategories(false);
+            var notFoundResult = result as NotFoundObjectResult;
 
-                Assert.AreEqual("Brak wybranego zeszytu.", notFoundResult.Value.ToString());
-            }
+            Assert.AreEqual("Brak wybranego zeszytu.", notFoundResult.Value.ToString());
         }
 
         [Test]
         public async Task GetCategoriesReturnsNotFoundOnNoUserSelected()
         {
-            int category;
-            using (var context = GetContextWithData(out category, noUser: true))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+            httpContextAccessor = new FakeHttpContextAccessor(context.Object, noUser: true);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            var result = await controller.GetCategories(false);
+            var notFoundResult = result as NotFoundObjectResult;
 
-                var result = await controller.GetCategories(false);
-                var notFoundResult = result as NotFoundObjectResult;
-
-                Assert.AreEqual("Nie rozpoznano użytkownika.", notFoundResult.Value.ToString());
-            }
+            Assert.AreEqual("Nie rozpoznano użytkownika.", notFoundResult.Value.ToString());
         }
 
         [Test]
         public async Task CreateCategoryReturnsOk()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
+            repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "TestCategory" }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), false)).Returns(Task.Run(() => new List<Category>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+
+            var result = await controller.CreateCategory(new SaveCategoryResource
             {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                Name = "TestCategory"
+            });
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            var okResult = result as OkObjectResult;
+            var createdCategory = okResult.Value as CategoryResource;
 
-                var result = await controller.CreateCategory(new SaveCategoryResource
-                {
-                    Name = "TestCategory"
-                });
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), false)).Returns(Task.Run(() => new List<Category> { new Category { Name = "TestCategory" } }));
 
-                var okResult = result as OkObjectResult;
-                var createdCategory = okResult.Value as CategoryResource;
+            var getCategoriesResult = await controller.GetCategories(false);
+            var getCategoriesResultOkResult = getCategoriesResult as OkObjectResult;
+            var allCategories = getCategoriesResultOkResult.Value as List<CategoryResource>;
 
-                var getCategoriesResult = await controller.GetCategories(false);
-                var getCategoriesResultOkResult = getCategoriesResult as OkObjectResult;
-                var allCategories = getCategoriesResultOkResult.Value as List<CategoryResource>;
-
-                Assert.IsTrue(allCategories.Any(c => c.Name == "TestCategory"));
-            }
-
+            Assert.IsTrue(allCategories.Any(c => c.Name == "TestCategory"));
         }
 
 
         [Test]
         public async Task CreateCategoryReturnsBadRequestOnExistingName()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
+            repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "Category1" }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), false)).Returns(Task.Run(() => new List<Category> { new Category { Name = "Category1" } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+
+            var result = await controller.CreateCategory(new SaveCategoryResource
             {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                Name = "Category1"
+            });
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            var badRequestResult = result as BadRequestObjectResult;
 
-                var result = await controller.CreateCategory(new SaveCategoryResource
-                {
-                    Name = "Category1"
-                });
-
-                var badRequestResult = result as BadRequestObjectResult;
-
-                Assert.AreEqual("Kategoria o podanej nazwie już istnieje.", badRequestResult.Value.ToString());
-            }
-
+            Assert.AreEqual("Kategoria o podanej nazwie już istnieje.", badRequestResult.Value.ToString());
         }
 
 
         [Test]
         public async Task CreateCategoryReturnsBadRequestOnValidationError()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+
+            controller.ModelState.AddModelError("Test", "Test value");
+            var result = await controller.CreateCategory(new SaveCategoryResource
             {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                Name = "Category1"
+            });
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
-
-                controller.ModelState.AddModelError("Test", "Test value");
-                var result = await controller.CreateCategory(new SaveCategoryResource
-                {
-                    Name = "Category1"
-                });
-
-                var badRequestResult = result as BadRequestObjectResult;
-                var error = badRequestResult.Value as SerializableError;
-                var errorList = error["Test"] as string[];
-                Assert.IsInstanceOf<BadRequestObjectResult>(result);
-                Assert.AreEqual("Test", error.Keys.ToList()[0]);
-                Assert.AreEqual("Test value", errorList[0]);
-            }
-
+            var badRequestResult = result as BadRequestObjectResult;
+            var error = badRequestResult.Value as SerializableError;
+            var errorList = error["Test"] as string[];
+            Assert.IsInstanceOf<BadRequestObjectResult>(result);
+            Assert.AreEqual("Test", error.Keys.ToList()[0]);
+            Assert.AreEqual("Test value", errorList[0]);
         }
 
         [Test]
@@ -201,160 +188,173 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task DeleteCategoryReturnsOK()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "Category2" }));
+            repository.Setup(r => r.GetCategory(It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.Run(() => new Category { Name = "Category2" }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Task.Run(() => new List<Category> {
+                    new Category { Name = "Category1", ScopeId = 1 },
+                    new Category { Name = "Category2", ScopeId = 1 },
+                    new Category { Name = "Category3", ScopeId = 1 },
+                    new Category { Name = "Category4", ScopeId = 1 }
+                }));
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
 
-                var categoriesResult = await controller.GetCategories(false);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
 
-                var okCategoriesResult = categoriesResult as OkObjectResult;
-                var categories = okCategoriesResult.Value as List<CategoryResource>;
+            var categoriesResult = await controller.GetCategories(false);
 
-                var categoryToBeDeleted = categories.FirstOrDefault(c => c.Name == "Category2");
-                var deleteResult = await controller.DeleteCategory(categoryToBeDeleted.Id);
-                var okDeleteResult = deleteResult as OkObjectResult;
+            var okCategoriesResult = categoriesResult as OkObjectResult;
+            var categories = okCategoriesResult.Value as List<CategoryResource>;
 
-                var result = await controller.GetCategories(false);
-                var okResult = result as OkObjectResult;
-                var categoriesAfterDeletion = okResult.Value as List<CategoryResource>;
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Task.Run(() => new List<Category> {
+                                    new Category { Name = "Category1", ScopeId = 1 },
+                                    new Category { Name = "Category3", ScopeId = 1 },
+                                    new Category { Name = "Category4", ScopeId = 1 }
+                }));
 
-                Assert.AreEqual(4, categories.Count);
-                Assert.AreEqual(3, categoriesAfterDeletion.Count);
-                Assert.IsNotNull(okDeleteResult);
-            }
+            var categoryToBeDeleted = categories.FirstOrDefault(c => c.Name == "Category2");
+            var deleteResult = await controller.DeleteCategory(categoryToBeDeleted.Id);
+            var okDeleteResult = deleteResult as OkObjectResult;
 
+            var result = await controller.GetCategories(false);
+            var okResult = result as OkObjectResult;
+            var categoriesAfterDeletion = okResult.Value as List<CategoryResource>;
+
+            Assert.AreEqual(4, categories.Count);
+            Assert.AreEqual(3, categoriesAfterDeletion.Count);
+            Assert.IsNotNull(okDeleteResult);
         }
 
         [Test]
         public async Task DeleteCategoryReturnsBadRequestOnExistingExpenses()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Task.Run(() => new List<Category> {
+                                    new Category { Name = "Category1", ScopeId = 1 },
+                                    new Category { Name = "Category2", ScopeId = 1 },
+                                    new Category { Name = "Category3", ScopeId = 1 },
+                                    new Category { Name = "Category4", ScopeId = 1 }
+                }));
+            repository.Setup(r => r.GetCategory(It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.Run(() => new Category { Name = "Category1", Expenses = new List<Expense> { new Expense { CategoryId = 15, Comment = "Test1", Date = DateTime.Parse("2018-03-04"), Value = 5.32F } } }));
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
 
-                var categoriesResult = await controller.GetCategories(false);
+            var categoriesResult = await controller.GetCategories(false);
 
-                var okCategoriesResult = categoriesResult as OkObjectResult;
-                var categories = okCategoriesResult.Value as List<CategoryResource>;
+            var okCategoriesResult = categoriesResult as OkObjectResult;
+            var categories = okCategoriesResult.Value as List<CategoryResource>;
 
-                var categoryToBeDeleted = categories.FirstOrDefault(c => c.Name == "Category1");
-                var deleteResult = await controller.DeleteCategory(categoryToBeDeleted.Id);
-                var badRequestDeleteResult = deleteResult as BadRequestObjectResult;
+            var categoryToBeDeleted = categories.FirstOrDefault(c => c.Name == "Category1");
+            var deleteResult = await controller.DeleteCategory(categoryToBeDeleted.Id);
+            var badRequestDeleteResult = deleteResult as BadRequestObjectResult;
 
-                var result = await controller.GetCategories(false);
-                var okResult = result as OkObjectResult;
-                var categoriesAfterDeletion = okResult.Value as List<CategoryResource>;
+            var result = await controller.GetCategories(false);
+            var okResult = result as OkObjectResult;
+            var categoriesAfterDeletion = okResult.Value as List<CategoryResource>;
 
-                Assert.AreEqual(4, categories.Count);
-                Assert.AreEqual(4, categoriesAfterDeletion.Count);
-                Assert.IsNotNull(badRequestDeleteResult);
-                Assert.AreEqual("Do kategorii \"Category1\" są przyporządkowane wydatki. Zmień ich kategorię lub usuń je przed usunięciem kategorii.", badRequestDeleteResult.Value.ToString());
-            }
-
+            Assert.AreEqual(4, categories.Count);
+            Assert.AreEqual(4, categoriesAfterDeletion.Count);
+            Assert.IsNotNull(badRequestDeleteResult);
+            Assert.AreEqual("Do kategorii \"Category1\" są przyporządkowane wydatki. Zmień ich kategorię lub usuń je przed usunięciem kategorii.", badRequestDeleteResult.Value.ToString());
         }
 
 
         [Test]
         public async Task DeleteCategoryReturnsNotFoundOnNotExistingCategory()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Task.Run(() => new List<Category> {
+                                                    new Category { Name = "Category1", ScopeId = 1 },
+                                                    new Category { Name = "Category2", ScopeId = 1 },
+                                                    new Category { Name = "Category3", ScopeId = 1 },
+                                                    new Category { Name = "Category4", ScopeId = 1 }
+                }));
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            var categoriesResult = await controller.GetCategories(false);
 
-                var categoriesResult = await controller.GetCategories(false);
+            var okCategoriesResult = categoriesResult as OkObjectResult;
+            var categories = okCategoriesResult.Value as List<CategoryResource>;
 
-                var okCategoriesResult = categoriesResult as OkObjectResult;
-                var categories = okCategoriesResult.Value as List<CategoryResource>;
+            var deleteResult = await controller.DeleteCategory(0);
+            var notFoundDeleteResult = deleteResult as NotFoundObjectResult;
 
-                var deleteResult = await controller.DeleteCategory(0);
-                var notFoundDeleteResult = deleteResult as NotFoundObjectResult;
+            var result = await controller.GetCategories(false);
+            var okResult = result as OkObjectResult;
+            var categoriesAfterDeletion = okResult.Value as List<CategoryResource>;
 
-                var result = await controller.GetCategories(false);
-                var okResult = result as OkObjectResult;
-                var categoriesAfterDeletion = okResult.Value as List<CategoryResource>;
-
-                Assert.AreEqual(4, categories.Count);
-                Assert.AreEqual(4, categoriesAfterDeletion.Count);
-                Assert.IsNotNull(notFoundDeleteResult);
-                Assert.AreEqual("Nie znaleziono kategorii. Mogła zostać usunięta przez innego uzytkownika.", notFoundDeleteResult.Value.ToString());
-            }
-
+            Assert.AreEqual(4, categories.Count);
+            Assert.AreEqual(4, categoriesAfterDeletion.Count);
+            Assert.IsNotNull(notFoundDeleteResult);
+            Assert.AreEqual("Nie znaleziono kategorii. Mogła zostać usunięta przez innego uzytkownika.", notFoundDeleteResult.Value.ToString());
         }
 
         [Test]
         public async Task UpdateCategoryReturnsOK()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Task.Run(() => new List<Category> {
+                                                    new Category { Name = "Category1", ScopeId = 1 },
+                                                    new Category { Name = "Category2", ScopeId = 1 },
+                                                    new Category { Name = "Category3", ScopeId = 1 },
+                                                    new Category { Name = "Category4", ScopeId = 1 }
+                }));
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "NewName" }));
 
-                var categoriesResult = await controller.GetCategories(false);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
 
-                var okCategoriesResult = categoriesResult as OkObjectResult;
-                var categoryToBeUpdated = (okCategoriesResult.Value as List<CategoryResource>).FirstOrDefault(c => c.Name == "Category3");
+            var categoriesResult = await controller.GetCategories(false);
 
-                var result = await controller.UpdateCategory(categoryToBeUpdated.Id, new SaveCategoryResource { Name = "NewName" });
+            var okCategoriesResult = categoriesResult as OkObjectResult;
+            var categoryToBeUpdated = (okCategoriesResult.Value as List<CategoryResource>).FirstOrDefault(c => c.Name == "Category3");
 
-                var okResult = result as OkObjectResult;
-                var categoryAfterChange = okResult.Value as CategoryResource;
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Task.Run(() => new List<Category> {
+                                                                    new Category { Name = "Category1", ScopeId = 1 },
+                                                                    new Category { Name = "Category2", ScopeId = 1 },
+                                                                    new Category { Name = "NewName", ScopeId = 1 },
+                                                                    new Category { Name = "Category4", ScopeId = 1 }
+                }));
 
-                var categoriesResultAfterUpdate = await controller.GetCategories(false);
-                var okCategoriesResultAfterUpdate = categoriesResultAfterUpdate as OkObjectResult;
-                var categoriesAfterUpdate = okCategoriesResultAfterUpdate.Value as List<CategoryResource>;
+            var result = await controller.UpdateCategory(categoryToBeUpdated.Id, new SaveCategoryResource { Name = "NewName" });
+
+            var okResult = result as OkObjectResult;
+            var categoryAfterChange = okResult.Value as CategoryResource;
+
+            var categoriesResultAfterUpdate = await controller.GetCategories(false);
+            var okCategoriesResultAfterUpdate = categoriesResultAfterUpdate as OkObjectResult;
+            var categoriesAfterUpdate = okCategoriesResultAfterUpdate.Value as List<CategoryResource>;
 
                 Assert.AreEqual("NewName", categoryAfterChange.Name);
-                Assert.NotNull(categoriesAfterUpdate.FirstOrDefault(c => c.Name == "NewName"));
-                Assert.AreEqual(categoryToBeUpdated.Id, categoriesAfterUpdate.FirstOrDefault(c => c.Name == "NewName").Id);
-            }
+            Assert.NotNull(categoriesAfterUpdate.FirstOrDefault(c => c.Name == "NewName"));
+            Assert.AreEqual(categoryToBeUpdated.Id, categoriesAfterUpdate.FirstOrDefault(c => c.Name == "NewName").Id);
         }
 
         [Test]
         public async Task UpdateCategoryReturnsErrorOnNonExistentCategory()
         {
-            int category;
-            using (var context = GetContextWithData(out category))
-            {
-                var repository = new CategoryRepository(context);
-                var scopeRepository = new ScopeRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
+                .Returns(Task.Run(() => new List<Category> {
+                                                    new Category { Name = "Category1", ScopeId = 1 },
+                                                    new Category { Name = "Category2", ScopeId = 1 },
+                                                    new Category { Name = "Category3", ScopeId = 1 },
+                                                    new Category { Name = "Category4", ScopeId = 1 }
+                }));
+            repository.Setup(r => r.UpdateCategory(It.IsAny<int>(), It.IsAny<Category>())).Throws(new ArgumentOutOfRangeException(message: "Żądana kategoria nie istnieje.", innerException: null));
 
-                var controller = new CategoryController(repository, scopeRepository, userRepository, mapper, unitOfWork, new FakeHttpContextAccesor(context));
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
 
-                var result = await controller.UpdateCategory(0, new SaveCategoryResource { Name = "NewName" });
-                var notFoundResult = result as NotFoundObjectResult;
+            var result = await controller.UpdateCategory(0, new SaveCategoryResource { Name = "NewName" });
+            var notFoundResult = result as NotFoundObjectResult;
 
-                Assert.AreEqual("Żądana kategoria nie istnieje.", notFoundResult.Value.ToString());
-            }
+            Assert.AreEqual("Żądana kategoria nie istnieje.", notFoundResult.Value.ToString());
         }
 
         private MainDbContext GetContextWithData(out int categoryId, bool noScope = false, bool noUser = false)

@@ -29,7 +29,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.GetScopes();
                 var okResult = result as OkObjectResult;
@@ -50,7 +50,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.GetScopes();
                 var notFoundResult = result as NotFoundObjectResult;
@@ -69,7 +69,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
                 var scope = context.Scopes.FirstOrDefault(s => s.Name == "Test");
                 var result = await controller.GetScope(scope.Id);
                 var okResult = result as OkObjectResult;
@@ -93,7 +93,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.GetScope(0);
                 var notFoundResult = result as NotFoundObjectResult;
@@ -113,7 +113,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test3");
                 var result = await controller.GetScope(scope.Id);
@@ -135,7 +135,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.GetScope(scopeIds.Last());
                 var notFoundResult = result as NotFoundObjectResult;
@@ -154,7 +154,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.CreateScope(new ScopeResource { Name = "NewScope" });
                 var okResult = result as OkObjectResult;
@@ -181,7 +181,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.CreateScope(new ScopeResource { Name = "Test" });
                 var badRequestResult = result as BadRequestObjectResult;
@@ -201,7 +201,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.CreateScope(new ScopeResource { Name = "Test3" });
                 var okResult = result as OkObjectResult;
@@ -227,7 +227,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 controller.ModelState.AddModelError("Test", "Test value");
                 var result = await controller.CreateScope(new ScopeResource { Name = "NewScope" });
@@ -252,7 +252,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var user = context.Users.Include(u => u.SelectedScope).FirstOrDefault(u => u.FirstName == "Zenek");
                 Assert.IsNull(user.SelectedScope);
@@ -277,7 +277,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test");
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
@@ -304,7 +304,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test");
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
@@ -330,7 +330,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test");
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
@@ -356,7 +356,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test3");
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
@@ -381,7 +381,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test");
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
@@ -407,7 +407,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.DeleteScope(scopeIds[3]);
                 var okResult = result as OkObjectResult;
@@ -427,7 +427,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.DeleteScope(scopeIds[1]);
                 var badRequestResult = result as BadRequestObjectResult;
@@ -447,7 +447,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.DeleteScope(0);
                 var notFoundResult = result as NotFoundObjectResult;
@@ -467,7 +467,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
                 
                 var scope = context.Scopes.FirstOrDefault(s => s.Name == "Test3");
                 
@@ -489,7 +489,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test");
                 var result = await controller.UpdateScope(scope.Id, new ScopeResource { Name = "NewName" });
@@ -511,7 +511,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 controller.ModelState.AddModelError("Test", "Test value");
                 var result = await controller.UpdateScope(scopeIds[0], new ScopeResource { Name = "NewName" });
@@ -536,7 +536,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var result = await controller.UpdateScope(0, new ScopeResource { Name = "NewName" });
                 var notFoundResult = result as NotFoundObjectResult;
@@ -557,7 +557,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var scope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test3");
                 var result = await controller.UpdateScope(scope.Id, new ScopeResource { Name = "NewName" });
@@ -578,7 +578,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
 
@@ -601,7 +601,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 //var user = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
 
@@ -624,7 +624,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Krzysiek");
 
@@ -650,7 +650,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 //var user = context.Users.FirstOrDefault(u => u.FirstName == "Krzysiek");
 
@@ -674,7 +674,7 @@ namespace ExpensesAPITests.Controllers
                 var unitOfWork = new EFUnitOfWork(context);
                 var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
 
-                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccesor(context), userRepository, mapper);
+                var controller = new ScopeController(scopeRepository, unitOfWork, new FakeHttpContextAccessor(context), userRepository, mapper);
 
                 var user = context.Users.FirstOrDefault(u => u.FirstName == "Krzysiek");
 
