@@ -52,8 +52,11 @@ namespace ExpensesAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            var expense = mapper.Map<Expense>(expenseResource);
 
+            if (expenseResource == null)
+                return BadRequest("Wydatek nie istnieje.");
+            var expense = mapper.Map<Expense>(expenseResource);
+            
             repository.AddExpense(expense);
 
             await unitOfWork.CompleteAsync();
@@ -68,6 +71,10 @@ namespace ExpensesAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            if (expenseResources == null)
+                return BadRequest("Wydatek nie istnieje.");
+
             var expenses = mapper.Map<List<Expense>>(expenseResources.Expenses);
 
             repository.AddExpenses(expenses);
@@ -83,24 +90,31 @@ namespace ExpensesAPI.Controllers
         [HttpDelete("api/expenses/multi")]
         public async Task<IActionResult> DeleteExpenses(List<int> ids)
         {
-            var expenses = await repository.GetExpensesAsync(ids);
+            try
+            {
+                repository.DeleteExpenses(ids);
+                await unitOfWork.CompleteAsync();
+            }
+            catch (ArgumentNullException e)
+            {
+                return BadRequest(e.Message);
+            }
 
-            repository.DeleteExpenses(expenses);
-            await unitOfWork.CompleteAsync();
-
-            return Ok(expenses.Select(e => e.Id).ToList());
+            return Ok(ids);
         }
 
         [HttpDelete("api/expenses/{id}")]
         public async Task<IActionResult> DeleteExpense(int id)
         {
-            var expense = await repository.GetExpenseAsync(id);
-
-            if (expense == null)
-                return NotFound("Nie znaleziono wydatku.");
-
-            repository.DeleteExpense(expense);
-            await unitOfWork.CompleteAsync();
+            try
+            {
+                repository.DeleteExpense(id);
+                await unitOfWork.CompleteAsync();
+            }
+            catch (ArgumentOutOfRangeException e)
+            {
+                return NotFound(e.Message);
+            }
 
             return Ok(id);
         }

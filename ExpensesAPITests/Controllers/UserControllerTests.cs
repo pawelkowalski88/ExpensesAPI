@@ -4,12 +4,15 @@ using ExpensesAPI.Mapping;
 using ExpensesAPI.Models;
 using ExpensesAPI.Persistence;
 using ExpensesAPI.Resources;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,130 +21,129 @@ namespace ExpensesAPITests.Controllers
     [TestFixture]
     class UserControllerTests
     {
+        private Mock<IScopeRepository> scopeRepository;
+        private Mock<IUserRepository> userRepository;
+        private Mock<IUnitOfWork> unitOfWork;
+        private IMapper mapper;
+        private Mock<IHttpContextAccessor> httpContextAccessor;
+        private Mock<HttpContext> httpContext;
+
+        [SetUp]
+        public void Setup()
+        {
+            scopeRepository = new Mock<IScopeRepository>();
+            userRepository = new Mock<IUserRepository>();
+            unitOfWork = new Mock<IUnitOfWork>();
+            mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            httpContextAccessor = new Mock<IHttpContextAccessor>();
+            httpContext = new Mock<HttpContext>();
+
+            httpContextAccessor.Setup(c => c.HttpContext).Returns(httpContext.Object);
+            httpContext.Setup(c => c.User)
+                .Returns(new ClaimsPrincipal(new List<ClaimsIdentity>
+                        {
+                            new ClaimsIdentity(new List<Claim>{ new Claim("id", "25") })
+                        })
+                );
+        }
+
         [Test]
         public async Task GetUserDataAsyncReturnsOK()
         {
-            using(var context = GetContextWithData())
-            {
-                var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccessor(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-                var scopeRepository = new ScopeRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var controller = new UserController(userRepository, contextAccessor, context, mapper, scopeRepository, unitOfWork);
+                var user1 = new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } };
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => user1));
 
+                var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
 
                 var result = await controller.GetUserDataAsync();
                 var okResult = result as OkObjectResult;
                 var user = okResult.Value as UserResource;
 
                 Assert.AreEqual("Zenek", user.FirstName);
-            }
         }
 
         [Test]
         public async Task GetUserDataAsyncReturnsNotFoundOnNoUser()
         {
-            using (var context = GetContextWithData(noUser: true))
-            {
-                var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccessor(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-                var scopeRepository = new ScopeRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
+            httpContext.Setup(c => c.User).Returns<ClaimsPrincipal>(null);
+            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
 
-                var controller = new UserController(userRepository, contextAccessor, context, mapper, scopeRepository, unitOfWork);
+            var result = await controller.GetUserDataAsync();
+            var notFoundResult = result as NotFoundObjectResult;
 
-                var result = await controller.GetUserDataAsync();
-                var notFoundResult = result as NotFoundObjectResult;
-
-                Assert.IsNotNull(notFoundResult);
-            }
+            Assert.IsNotNull(notFoundResult);
         }
 
         [Test]
         public async Task GetUserListReturnsOneUserForQuery()
         {
-            using (var context = GetContextWithData())
+            userRepository.Setup(r => r.GetUserListAsync("wojt", "25")).Returns(async () => new List<User>
             {
-                var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccessor(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-                var scopeRepository = new ScopeRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
+                new User
+                {
+                    Id = "2",
+                    FirstName = "Wojtek"
+                }
+            });
+            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
 
-                var controller = new UserController(userRepository, contextAccessor, context, mapper, scopeRepository, unitOfWork);
+            var result = await controller.GetUserList("wojt");
+            var okResult = result as OkObjectResult;
+            var results = okResult.Value as IEnumerable<UserResource>;
 
-                var result = await controller.GetUserList("wojt");
-                var okResult = result as OkObjectResult;
-                var results = okResult.Value as IEnumerable<UserResource>;
-
-                Assert.AreEqual(1, results.Count());
-            }
+            Assert.AreEqual(1, results.Count());
         }
 
         [Test]
         public async Task GetUserListReturnsThreeUsersForQuery()
         {
-            using (var context = GetContextWithData())
+            userRepository.Setup(r => r.GetUserListAsync("k", "25")).Returns(async () => new List<User>
             {
-                var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccessor(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-                var scopeRepository = new ScopeRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
+                new User
+                {
+                    Id = "1",
+                    FirstName = "Zenek"
+                },
+                new User
+                {
+                    Id = "2",
+                    FirstName = "Wojtek"
+                }
+            });
+            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
 
-                var controller = new UserController(userRepository, contextAccessor, context, mapper, scopeRepository, unitOfWork);
+            var result = await controller.GetUserList("k");
+            var okResult = result as OkObjectResult;
+            var results = okResult.Value as IEnumerable<UserResource>;
 
-                var result = await controller.GetUserList("k");
-                var okResult = result as OkObjectResult;
-                var results = okResult.Value as IEnumerable<UserResource>;
-
-                Assert.AreEqual(2, results.Count());
-            }
+            Assert.AreEqual(2, results.Count());
         }
 
 
         [Test]
         public async Task GetUserListReturnsNoUsersForEmptyQuery()
         {
-            using (var context = GetContextWithData())
-            {
-                var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccessor(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-                var scopeRepository = new ScopeRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
+            userRepository.Setup(r => r.GetUserListAsync("", "25")).Returns(async () => new List<User> {});
+            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
 
-                var controller = new UserController(userRepository, contextAccessor, context, mapper, scopeRepository, unitOfWork);
+            var result = await controller.GetUserList("");
+            var okResult = result as OkObjectResult;
+            var results = okResult.Value as IEnumerable<UserResource>;
 
-                var result = await controller.GetUserList("");
-                var okResult = result as OkObjectResult;
-                var results = okResult.Value as IEnumerable<UserResource>;
-
-                Assert.AreEqual(0, results.Count());
-            }
+            Assert.AreEqual(0, results.Count());
         }
 
         [Test]
         public async Task GetUserListReturnsNoUsersForWrongQuery()
         {
-            using (var context = GetContextWithData())
-            {
-                var userRepository = new UserRepository(context);
-                var contextAccessor = new FakeHttpContextAccessor(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-                var scopeRepository = new ScopeRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
+            userRepository.Setup(r => r.GetUserListAsync("baba", "25")).Returns(async () => new List<User> { });
+            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
 
-                var controller = new UserController(userRepository, contextAccessor, context, mapper, scopeRepository, unitOfWork);
+            var result = await controller.GetUserList("baba");
+            var okResult = result as OkObjectResult;
+            var results = okResult.Value as IEnumerable<UserResource>;
 
-                var result = await controller.GetUserList("baba");
-                var okResult = result as OkObjectResult;
-                var results = okResult.Value as IEnumerable<UserResource>;
-
-                Assert.AreEqual(0, results.Count());
-            }
+            Assert.AreEqual(0, results.Count());
         }
 
         private MainDbContext GetContextWithData(bool noScope = false, bool noUser = false)

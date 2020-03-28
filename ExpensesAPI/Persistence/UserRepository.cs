@@ -15,6 +15,13 @@ namespace ExpensesAPI.Persistence
             this.context = context;
         }
 
+        public async Task AssingScopeToUser(string userId, Scope scope)
+        {
+            var user = await context.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+            user.SelectedScope = scope;
+        }
+
         public async Task<User> GetUserAsync(string id)
         {
             return await context.Users

@@ -37,6 +37,7 @@ namespace ExpensesAPI.Controllers
         {
             if (httpContextAccessor.HttpContext.User == null)
                 return NotFound("Nie rozpoznano użytkownika.");
+
             var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
             var user = await userRepository.GetUserAsync(claim.Value);
             var scopes = await repository.GetScopes(user);
@@ -89,8 +90,9 @@ namespace ExpensesAPI.Controllers
             var newScope = await repository.GetScope(scope.Id);
             if (user.SelectedScope == null)
             {
-                user.SelectedScope = newScope;
-                await unitOfWork.CompleteAsync();
+                userRepository.AssingScopeToUser(user.Id, newScope);
+                //user.SelectedScope = newScope;
+                //await unitOfWork.CompleteAsync();
             }
             return Ok(newScope);
         }
@@ -117,7 +119,7 @@ namespace ExpensesAPI.Controllers
             var scopeUser = scope.ScopeUsers.FirstOrDefault(su => su.ScopeId == scopeId && su.UserId == userId);
             if (scopeUser == null)
                 return NotFound("Nie znaleziono użytkownika o podanym Id w danym zeszycie.");
-            scope.ScopeUsers.Remove(scopeUser);
+            repository.RemoveUserFromScope(scope, scopeUser);
             await unitOfWork.CompleteAsync();
             return Ok();
         }

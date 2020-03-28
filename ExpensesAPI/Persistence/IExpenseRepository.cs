@@ -13,11 +13,11 @@ namespace ExpensesAPI.Persistence
         Task<Expense> GetExpenseAsync(int id);
         void AddExpense(Expense expense);
         void AddExpenses(IEnumerable<Expense> expenses);
-        void DeleteExpense(Expense expense);
-        void DeleteExpenses(List<Expense> expenses);
+        Task DeleteExpense(int expenseId);
+        Task DeleteExpenses(List<int> expenseIds);
         Task UpdateExpenseAsync(int id, Expense expense);
-        Task<float> GetExpensesGrandTotal(Query query);
-        Task<float> GetExpensesGrandTotalIncome(Query query);
-        Task<float> GetExpensesGrandTotalCosts(Query query);
+        //Task<float> GetExpensesGrandTotal(Query query);
+        //Task<float> GetExpensesGrandTotalIncome(Query query);
+        //Task<float> GetExpensesGrandTotalCosts(Query query);
     }
 }

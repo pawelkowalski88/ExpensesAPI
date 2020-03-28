@@ -18,8 +18,6 @@ namespace ExpensesAPI.Controllers
     public class UserController : ControllerBase
     {
         private readonly IHttpContextAccessor httpContextAccessor;
-        private readonly UserManager<User> userManager;
-        private readonly MainDbContext mainDbContext;
         private readonly IMapper mapper;
         private readonly IScopeRepository scopeRepository;
         private readonly IHostingEnvironment host;
@@ -28,14 +26,12 @@ namespace ExpensesAPI.Controllers
 
         public UserController(IUserRepository userRepository,
             IHttpContextAccessor httpContextAccessor,
-            MainDbContext mainDbContext,
             IMapper mapper,
             IScopeRepository scopeRepository,
             IUnitOfWork unitOfWork)
         {
             this.userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
-            this.mainDbContext = mainDbContext;
             this.mapper = mapper;
             this.scopeRepository = scopeRepository;
             this.unitOfWork = unitOfWork;
@@ -72,7 +68,7 @@ namespace ExpensesAPI.Controllers
         public async Task<IActionResult> GetUserPicture()
         {
             var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value);
+            var user = await userRepository.GetUserAsync(claim.Value);
 
             if (user.PictureUrl != null)
             {
@@ -89,7 +85,7 @@ namespace ExpensesAPI.Controllers
             try
             {
                 var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-                var user = await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value);
+                var user = await userRepository.GetUserAsync(claim.Value);
 
                 var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "PictureFiles");
                 if (!Directory.Exists(uploadsFolderPath))
@@ -105,7 +101,7 @@ namespace ExpensesAPI.Controllers
 
                 var oldPictureName = user.PictureUrl;
                 user.PictureUrl = fileName;
-                mainDbContext.SaveChanges();
+                unitOfWork.CompleteAsync();
 
                 if (oldPictureName != null)
                     System.IO.File.Delete(Path.Combine(uploadsFolderPath, oldPictureName));
@@ -123,7 +119,7 @@ namespace ExpensesAPI.Controllers
         public async Task<IActionResult> GetSelectedScope()
         {
             var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await mainDbContext.Users.Include(u => u.SelectedScope).SingleAsync(u => u.Id == claim.Value);
+            var user = await userRepository.GetUserAsync(claim.Value);
 
             return Ok(mapper.Map<ScopeResource>(user.SelectedScope));
         }
@@ -132,7 +128,7 @@ namespace ExpensesAPI.Controllers
         public async Task<IActionResult> SetSelectedScope([FromBody] ScopeId scopeId)
         {
             var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value);
+            var user = await userRepository.GetUserAsync(claim.Value);
 
             user.SelectedScope = await scopeRepository.GetScope(scopeId.Id);
             await unitOfWork.CompleteAsync();
@@ -143,14 +139,15 @@ namespace ExpensesAPI.Controllers
         public async Task<IActionResult> UpdateCurrentUser([FromBody] UserResource user)
         {
             var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var userCurrent = await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value);
+            //var user = await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value);
+            var userCurrent = await userRepository.GetUserAsync(claim.Value);
 
             userCurrent.FirstName = user.FirstName;
             userCurrent.LastName = user.LastName;
             userCurrent.Email = user.Email;
 
             await unitOfWork.CompleteAsync();
-            return Ok(await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value));
+            return Ok(await userRepository.GetUserAsync(claim.Value));
         }
     }
 

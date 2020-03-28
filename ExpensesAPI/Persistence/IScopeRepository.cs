@@ -14,5 +14,6 @@ namespace ExpensesAPI.Persistence
         Task AddScope(Scope s);
         void DeleteScope(Scope s);
         Task UpdateScope(Scope scope, int id);
+        void RemoveUserFromScope(Scope scope, ScopeUser scopeUser);
     }
 }

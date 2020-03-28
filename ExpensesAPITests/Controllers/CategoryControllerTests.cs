@@ -29,7 +29,8 @@ namespace ExpensesAPITests.Controllers
         private Mock<IUnitOfWork> unitOfWork;
         private Mapper mapper;
         private Mock<MainDbContext> context;
-        private IHttpContextAccessor httpContextAccessor;
+        private Mock<IHttpContextAccessor> httpContextAccessor;
+        private Mock<HttpContext> httpContext;
 
         [SetUp]
         public void Setup()
@@ -40,31 +41,31 @@ namespace ExpensesAPITests.Controllers
             unitOfWork = new Mock<IUnitOfWork>();
             mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
             context = new Mock<MainDbContext>();
-            httpContextAccessor = new FakeHttpContextAccessor(context.Object);
+            httpContextAccessor = new Mock<IHttpContextAccessor>();
+            httpContext = new Mock<HttpContext>();
+
+            httpContextAccessor.Setup(c => c.HttpContext).Returns(httpContext.Object);
+            httpContext.Setup(c => c.User)
+                .Returns(new ClaimsPrincipal(new List<ClaimsIdentity>
+                        {
+                            new ClaimsIdentity(new List<Claim>{ new Claim("id", "Zenek") })
+                        })
+                );
         }
 
         [Test]
         public async Task GetCategoriesReturns4Categories()
         {
 
-            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
-                    .Returns(Task.Run(() => new List<Category> {
-                        new Category { Name = "Category1", ScopeId = 1 },
-                        new Category { Name = "Category2", ScopeId = 1 },
-                        new Category { Name = "Category3", ScopeId = 1 },
-                        new Category { Name = "Category4", ScopeId = 1 }
-                    }));
+            repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()));
 
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var result = await controller.GetCategories(false);
-            var okResult = result as OkObjectResult;
-            var categories = okResult.Value as List<CategoryResource>;
 
-            Assert.AreEqual(4, categories.Count);
-            //}
+            repository.Verify(r => r.GetCategories(25, false));
         }
 
         [Test]
@@ -72,7 +73,7 @@ namespace ExpensesAPITests.Controllers
         {
             userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var result = await controller.GetCategories(false);
             var notFoundResult = result as NotFoundObjectResult;
@@ -84,8 +85,8 @@ namespace ExpensesAPITests.Controllers
         public async Task GetCategoriesReturnsNotFoundOnNoUserSelected()
         {
             userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
-            httpContextAccessor = new FakeHttpContextAccessor(context.Object, noUser: true);
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            httpContext.Setup(c => c.User).Returns<ClaimsPrincipal>(null);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var result = await controller.GetCategories(false);
             var notFoundResult = result as NotFoundObjectResult;
@@ -98,9 +99,9 @@ namespace ExpensesAPITests.Controllers
         {
             repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "TestCategory" }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), false)).Returns(Task.Run(() => new List<Category>()));
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 24, Name = "Test", Owner = null } }));
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var result = await controller.CreateCategory(new SaveCategoryResource
             {
@@ -127,7 +128,7 @@ namespace ExpensesAPITests.Controllers
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), false)).Returns(Task.Run(() => new List<Category> { new Category { Name = "Category1" } }));
             userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var result = await controller.CreateCategory(new SaveCategoryResource
             {
@@ -143,7 +144,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task CreateCategoryReturnsBadRequestOnValidationError()
         {
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             controller.ModelState.AddModelError("Test", "Test value");
             var result = await controller.CreateCategory(new SaveCategoryResource
@@ -200,7 +201,7 @@ namespace ExpensesAPITests.Controllers
                 }));
 
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var categoriesResult = await controller.GetCategories(false);
 
@@ -240,7 +241,7 @@ namespace ExpensesAPITests.Controllers
                 }));
             repository.Setup(r => r.GetCategory(It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.Run(() => new Category { Name = "Category1", Expenses = new List<Expense> { new Expense { CategoryId = 15, Comment = "Test1", Date = DateTime.Parse("2018-03-04"), Value = 5.32F } } }));
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var categoriesResult = await controller.GetCategories(false);
 
@@ -273,7 +274,7 @@ namespace ExpensesAPITests.Controllers
                                                     new Category { Name = "Category3", ScopeId = 1 },
                                                     new Category { Name = "Category4", ScopeId = 1 }
                 }));
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var categoriesResult = await controller.GetCategories(false);
 
@@ -307,7 +308,7 @@ namespace ExpensesAPITests.Controllers
 
             repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "NewName" }));
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var categoriesResult = await controller.GetCategories(false);
 
@@ -349,7 +350,7 @@ namespace ExpensesAPITests.Controllers
                 }));
             repository.Setup(r => r.UpdateCategory(It.IsAny<int>(), It.IsAny<Category>())).Throws(new ArgumentOutOfRangeException(message: "Żądana kategoria nie istnieje.", innerException: null));
 
-            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor);
+            var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
             var result = await controller.UpdateCategory(0, new SaveCategoryResource { Name = "NewName" });
             var notFoundResult = result as NotFoundObjectResult;

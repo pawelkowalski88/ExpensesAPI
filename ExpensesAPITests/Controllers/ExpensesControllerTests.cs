@@ -4,6 +4,7 @@ using ExpensesAPI.Mapping;
 using ExpensesAPI.Models;
 using ExpensesAPI.Persistence;
 using ExpensesAPI.Resources;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Moq;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -24,6 +26,8 @@ namespace ExpensesAPITests.Controllers
         private Mock<IUserRepository> userRepository;
         private Mock<IUnitOfWork> unitOfWork;
         private IMapper mapper;
+        private Mock<IHttpContextAccessor> httpContextAccessor;
+        private Mock<HttpContext> httpContext;
 
         [SetUp]
         public void Setup()
@@ -32,6 +36,16 @@ namespace ExpensesAPITests.Controllers
             userRepository = new Mock<IUserRepository>();
             unitOfWork = new Mock<IUnitOfWork>();
             mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+            httpContextAccessor = new Mock<IHttpContextAccessor>();
+            httpContext = new Mock<HttpContext>();
+
+            httpContextAccessor.Setup(c => c.HttpContext).Returns(httpContext.Object);
+            httpContext.Setup(c => c.User)
+                .Returns(new ClaimsPrincipal(new List<ClaimsIdentity>
+                        {
+                            new ClaimsIdentity(new List<Claim>{ new Claim("id", "Zenek") })
+                        })
+                );
         }
 
         #region GetExpenses
@@ -41,31 +55,16 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                //var repository = new ExpenseRepository(context);
-                //var userRepository = new UserRepository(context);
-                //var unitOfWork = new EFUnitOfWork(context);
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
 
-                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
                 var request = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var okResult = request as OkObjectResult;
 
                 var results = okResult.Value as List<ExpenseResource>;
 
-                Assert.AreEqual(4, results.Count);
-                Assert.IsNotNull(results.First(r => r.Comment == "Test1"));
-                Assert.IsNotNull(results.First(r => r.Comment == "Test2"));
-                Assert.IsNotNull(results.First(r => r.Comment == "Test3"));
-                Assert.IsNotNull(results.First(r => r.Comment == "Test4"));
-
-                Assert.Throws<InvalidOperationException>(() => results.First(r => r.Comment == "Test5"));
-                Assert.Throws<InvalidOperationException>(() => results.First(r => r.Comment == "Test6"));
-
-                Assert.IsTrue(results.First(r => r.Comment == "Test1").IsDuplicate);
-                Assert.IsTrue(results.First(r => r.Comment == "Test2").IsDuplicate);
-
-                Assert.IsFalse(results.First(r => r.Comment == "Test3").IsDuplicate);
-                Assert.IsFalse(results.First(r => r.Comment == "Test4").IsDuplicate);
+                userRepository.Verify(r => r.GetUserAsync("Zenek"));
             }
         }
 
@@ -75,12 +74,10 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category, noUser: true))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
+                httpContext.Setup(c => c.User).Returns<ClaimsPrincipal>(null);
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
                 var request = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var notFoundResult = request as NotFoundObjectResult;
@@ -95,12 +92,9 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category, noScope: true))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
                 var request = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
                 var notFoundResult = request as NotFoundObjectResult;
@@ -118,12 +112,10 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                repository.Setup(r => r.GetExpenseAsync(It.IsAny<int>())).Returns(Task.Run(() => new Expense { CategoryId = category, Comment = "TestAdd", Details = "Details test", Value = -23.54F }));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
                 var date = DateTime.Now;
 
@@ -135,7 +127,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd",
                     Date = date.ToString(),
                     Details = "Details test",
-                    //ScopeId = 1,
                     Value = -23.54F
                 });
 
@@ -144,11 +135,25 @@ namespace ExpensesAPITests.Controllers
 
                 Assert.AreEqual(category, result.CategoryId);
                 Assert.AreEqual("TestAdd", result.Comment);
-                Assert.AreEqual(date.ToString("yyyy-MM-dd"), result.Date);
                 Assert.AreEqual("Details test", result.Details);
-                //Assert.AreEqual(1, result.ScopeId);
                 Assert.AreEqual(-23.54F, result.Value);
                 Assert.IsFalse(result.IsDuplicate);
+            }
+        }
+
+        [Test]
+        public async Task CreateExpenseOnNullInput()
+        {
+            int category;
+            using (var context = GetContextWithData(out category))
+            {
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                repository.Setup(r => r.GetExpenseAsync(It.IsAny<int>())).Returns(Task.Run(() => new Expense { CategoryId = category, Comment = "TestAdd", Details = "Details test", Value = -23.54F }));
+                repository.Setup(r => r.AddExpense(It.IsAny<Expense>())).Throws<ArgumentNullException>();
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
+
+                var request = await controller.CreateExpense(null);
+                Assert.That(request, Is.TypeOf<BadRequestObjectResult>());
             }
         }
 
@@ -158,12 +163,9 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
                 var date = DateTime.Now;
 
@@ -174,7 +176,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = null,
                     Date = date.ToString(),
                     Details = "Details test",
-                    //ScopeId = 1,
                     Value = -23.54F
                 });
 
@@ -246,14 +247,30 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
-
                 var date = DateTime.Now;
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                repository.Setup(r => r.GetExpensesAsync(It.IsAny<IEnumerable<int>>())).Returns(Task.Run(() => new List<Expense>
+                {
+                    new Expense
+                    {
+                        CategoryId = category,
+                        Comment = "TestAdd",
+                        Date = date,
+                        Details = "Details test",
+                        Value = -23.54F
+                    },
+                    new Expense
+                    {
+                        CategoryId = category,
+                        Comment = "TestAdd2",
+                        Date = date,
+                        Details = "Details test 2",
+                        Value = -98.01F
+                    }
+                }));
+
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
+
 
                 controller.ModelState.Clear();
                 var resource = new SaveExpenseCollectionResource
@@ -266,7 +283,6 @@ namespace ExpensesAPITests.Controllers
                             Comment = "TestAdd",
                             Date = date.ToString(),
                             Details = "Details test",
-                            //ScopeId = 1,
                             Value = -23.54F
                         },
                         new ExpenseResourceBase
@@ -275,7 +291,6 @@ namespace ExpensesAPITests.Controllers
                             Comment = "TestAdd2",
                             Date = date.ToString(),
                             Details = "Details test 2",
-                            //ScopeId = 1,
                             Value = -98.01F
                         },
                     }
@@ -283,29 +298,24 @@ namespace ExpensesAPITests.Controllers
 
                 var request = await controller.CreateExpenses(resource);
 
-                var okResult = request as OkObjectResult;
-                var result = okResult.Value as List<ExpenseResource>;
+                repository.Verify(r => r.AddExpenses(It.IsAny<IEnumerable<Expense>>()));
+            }
+        }
 
-                var id1 = result.IndexOf(result.FirstOrDefault(e => e.Comment == "TestAdd"));
-                var id2 = result.IndexOf(result.FirstOrDefault(e => e.Comment == "TestAdd2"));
 
-                Assert.AreEqual(2, result.Count);
+        [Test]
+        public async Task CreateExpensesOnNullInput()
+        {
+            int category;
+            using (var context = GetContextWithData(out category))
+            {
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                repository.Setup(r => r.GetExpenseAsync(It.IsAny<int>())).Returns(Task.Run(() => new Expense { CategoryId = category, Comment = "TestAdd", Details = "Details test", Value = -23.54F }));
+                repository.Setup(r => r.AddExpenses(null)).Throws<ArgumentNullException>();
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
-                Assert.AreEqual(category, result[id1].CategoryId);
-                Assert.AreEqual("TestAdd", result[id1].Comment);
-                Assert.AreEqual(date.ToString("yyyy-MM-dd"), result[id1].Date);
-                Assert.AreEqual("Details test", result[id1].Details);
-                //Assert.AreEqual(1, result[0].ScopeId);
-                Assert.AreEqual(-23.54F, result[id1].Value);
-                Assert.IsFalse(result[id1].IsDuplicate);
-
-                Assert.AreEqual(category, result[id2].CategoryId);
-                Assert.AreEqual("TestAdd2", result[id2].Comment);
-                Assert.AreEqual(date.ToString("yyyy-MM-dd"), result[id2].Date);
-                Assert.AreEqual("Details test 2", result[id2].Details);
-                //Assert.AreEqual(1, result[1].ScopeId);
-                Assert.AreEqual(-98.01F, result[id2].Value);
-                Assert.IsFalse(result[id2].IsDuplicate);
+                var request = await controller.CreateExpenses(null);
+                Assert.That(request, Is.TypeOf<BadRequestObjectResult>());
             }
         }
 
@@ -315,14 +325,10 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
-
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
-
                 var date = DateTime.Now;
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
                 controller.ModelState.AddModelError("Test", "Test value");
                 var resource = new SaveExpenseCollectionResource
@@ -335,7 +341,6 @@ namespace ExpensesAPITests.Controllers
                             Comment = "TestAdd",
                             Date = date.ToString(),
                             Details = "Details test",
-                            //ScopeId = 1,
                             Value = -23.54F
                         },
                         new ExpenseResourceBase
@@ -344,7 +349,6 @@ namespace ExpensesAPITests.Controllers
                             Comment = "TestAdd2",
                             Date = date.ToString(),
                             Details = "Details test 2",
-                            //ScopeId = 1,
                             Value = -98.01F
                         },
                     }
@@ -371,7 +375,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test",
-                    //ScopeId = 1,
                     Value = -23.54F
                 },
                 new ExpenseResourceBase
@@ -380,7 +383,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd2",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test 2",
-                    //ScopeId = 1,
                     Value = -98.01F
                 },
             }.ToArray();
@@ -402,7 +404,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test",
-                    //ScopeId = 1,
                     Value = -23.54F
                 },
                 new ExpenseResourceBase
@@ -411,7 +412,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd2",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test 2",
-                    //ScopeId = 1,
                     Value = -98.01F
                 },
             };
@@ -435,7 +435,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd1",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test",
-                    //ScopeId = 1,
                     Value = -23.54F
                 },
                 new ExpenseResourceBase
@@ -444,7 +443,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd2",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test 2",
-                    //ScopeId = 0,
                     Value = -98.01F
                 },
             };
@@ -468,7 +466,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd1",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test",
-                    //ScopeId = 1,
                     Value = -23.54F
                 },
                 new ExpenseResourceBase
@@ -477,7 +474,6 @@ namespace ExpensesAPITests.Controllers
                     Comment = "TestAdd2",
                     Date = DateTime.Now.ToString(),
                     Details = "Details test 2",
-                    //ScopeId = 1,
                     Value = -98.01F
                 },
             };
@@ -498,71 +494,35 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                var date = DateTime.Now;
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
+                var request = await controller.DeleteExpenses(new List<int> { 2, 23 });
 
-                var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
-
-                var resultsAll = okGetAllExpensesResult.Value as List<ExpenseResource>;
-
-                var request = await controller.DeleteExpenses(resultsAll.Where(e => e.Comment == "Test2" || e.Comment == "Test4").Select(e => e.Id).ToList());
-
-                var okResult = request as OkObjectResult;
-
-                var getExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetExpensesResult = getExpensesRequest as OkObjectResult;
-
-                var results = okGetExpensesResult.Value as List<ExpenseResource>;
-
-                Assert.AreEqual(2, results.Count);
-                Assert.IsNotNull(results.FirstOrDefault(r => r.Comment == "Test1"));
-                Assert.IsNotNull(results.FirstOrDefault(r => r.Comment == "Test3"));
+                repository.Verify(r => r.DeleteExpenses(new List<int> { 2, 23 }));
+                Assert.That(request, Is.TypeOf<OkObjectResult>());
             }
         }
 
         [Test]
-        public async Task DeleteExpensesReturnsOkWithZeroId()
+        public async Task DeleteExpensesReturnsBadRequestOnException()
         {
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                var date = DateTime.Now;
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                repository.Setup(r => r.DeleteExpenses(It.IsAny<List<int>>())).Throws<ArgumentNullException>();
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
+                var request = await controller.DeleteExpenses(new List<int> { 2, 23 });
 
-                var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
-
-                var resultsAll = okGetAllExpensesResult.Value as List<ExpenseResource>;
-                var deletionList = resultsAll.Where(e => e.Comment == "Test2").Select(e => e.Id).ToList();
-                deletionList.Add(0);
-
-                var request = await controller.DeleteExpenses(deletionList);
-
-                var okResult = request as OkObjectResult;
-                var deletedItemsIds = okResult.Value as List<int>;
-
-                var getExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetExpensesResult = getExpensesRequest as OkObjectResult;
-
-                var results = okGetExpensesResult.Value as List<ExpenseResource>;
-
-                Assert.AreEqual(3, results.Count);
-                Assert.AreEqual(1, deletedItemsIds.Count);
-                Assert.AreEqual(deletionList[0], deletedItemsIds[0]);
-                Assert.IsNotNull(results.First(r => r.Comment == "Test1"));
-                Assert.IsNotNull(results.First(r => r.Comment == "Test3"));
-                Assert.IsNotNull(results.First(r => r.Comment == "Test4"));
+                repository.Verify(r => r.DeleteExpenses(new List<int> { 2, 23 }));
+                Assert.That(request, Is.TypeOf<BadRequestObjectResult>());
             }
         }
+
 
         [Test]
         public async Task DeleteExpenseReturnsOK()
@@ -570,31 +530,14 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
-                var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
+                var request = await controller.DeleteExpense(75);
 
-                var resultsAll = okGetAllExpensesResult.Value as List<ExpenseResource>;
-                var itemToBeDeleted = resultsAll[0].Id;
-
-                var request = await controller.DeleteExpense(itemToBeDeleted);
-
-                var okResult = request as OkObjectResult;
-                var deleteItemId = (int)okResult.Value;
-
-                var getExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetExpensesResult = getExpensesRequest as OkObjectResult;
-
-                var results = okGetExpensesResult.Value as List<ExpenseResource>;
-
-                Assert.AreEqual(itemToBeDeleted, deleteItemId);
-                Assert.AreEqual(3, results.Count);
+                repository.Verify(r => r.DeleteExpense(75));
+                Assert.That(request, Is.TypeOf<OkObjectResult>());
             }
         }
 
@@ -604,30 +547,15 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                repository.Setup(r => r.DeleteExpense(75)).Throws<ArgumentOutOfRangeException>();
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
-                var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
+                var request = await controller.DeleteExpense(75);
 
-                var resultsAll = okGetAllExpensesResult.Value as List<ExpenseResource>;
-                var itemToBeDeleted = 0;
-
-                var request = await controller.DeleteExpense(itemToBeDeleted);
-
-                var notFoundResult = request as NotFoundObjectResult;
-
-                var getExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetExpensesResult = getExpensesRequest as OkObjectResult;
-
-                var results = okGetExpensesResult.Value as List<ExpenseResource>;
-
-                //Assert.AreEqual(itemToBeDeleted, deleteItemId);
-                Assert.AreEqual(4, results.Count);
+                repository.Verify(r => r.DeleteExpense(75));
+                Assert.That(request, Is.TypeOf<NotFoundObjectResult>());
             }
         }
 
@@ -637,35 +565,25 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                repository.Setup(r => r.GetExpenseAsync(54)).Returns(Task.Run(() => new Expense { Id = 54, CategoryId = 22, Comment = "New comment" }));
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
-                var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
-
-                var resultsAll = okGetAllExpensesResult.Value as List<ExpenseResource>;
-                var itemToBeUpdated = resultsAll[0];
-                var id = itemToBeUpdated.Id;
-
-                var result = await controller.UpdateExpense(id, new ExpenseResourceBase
+                var result = await controller.UpdateExpense(54, new ExpenseResourceBase
                 {
-                    CategoryId = itemToBeUpdated.CategoryId,
+                    CategoryId = 22,
                     Comment = "New comment",
                     Date = "2018-03-04",
-                    Details = itemToBeUpdated.Details,
-                    //ScopeId = itemToBeUpdated.ScopeId,
-                    Value = itemToBeUpdated.Value
+                    Details = "Details",
+                    Value = 124
                 });
-
                 var okUpdateResult = result as OkObjectResult;
                 var expense = okUpdateResult.Value as ExpenseResource;
 
-                Assert.AreEqual(expense.Comment, "New comment");
-                Assert.AreEqual(expense.Date, "2018-03-04");
+                repository.Verify(r => r.UpdateExpenseAsync(54, It.IsAny<Expense>()));
+                Assert.That(result, Is.TypeOf<OkObjectResult>());
+                Assert.That(expense.Comment, Is.EqualTo("New comment"));
             }
         }
 
@@ -675,35 +593,22 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                var repository = new ExpenseRepository(context);
-                var userRepository = new UserRepository(context);
-                var unitOfWork = new EFUnitOfWork(context);
-                var mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
+                repository.Setup(r => r.UpdateExpenseAsync(23, It.IsAny<Expense>())).Throws<ArgumentOutOfRangeException>();
 
-                var controller = new ExpenseController(repository, userRepository, mapper, unitOfWork, new FakeHttpContextAccessor(context));
+                var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
-                var getAllExpensesRequest = await controller.GetExpenses(new Query { StartDate = DateTime.Parse("2018-03-01"), EndDate = DateTime.Parse("2018-03-31") });
-                var okGetAllExpensesResult = getAllExpensesRequest as OkObjectResult;
 
-                var resultsAll = okGetAllExpensesResult.Value as List<ExpenseResource>;
-                var itemToBeUpdated = resultsAll[0];
-                var id = 0;
-
-                var result = await controller.UpdateExpense(id, new ExpenseResourceBase
+                var result = await controller.UpdateExpense(23, new ExpenseResourceBase
                 {
-                    CategoryId = itemToBeUpdated.CategoryId,
+                    CategoryId = 54,
                     Comment = "New comment",
                     Date = "2018-03-04",
-                    Details = itemToBeUpdated.Details,
-                    //ScopeId = itemToBeUpdated.ScopeId,
-                    Value = itemToBeUpdated.Value
+                    Details = "Details",
+                    Value = 454
                 });
 
-                var notFoundUpdateResult = result as NotFoundObjectResult;
-                //var expense = okUpdateResult.Value as ExpenseResource;
-
-                Assert.AreEqual("Żądany wydatek nie istnieje.", notFoundUpdateResult.Value.ToString());
-                //Assert.AreEqual(expense.Date, "2018-03-04");
+                repository.Verify(r => r.UpdateExpenseAsync(23, It.IsAny<Expense>()));
+                Assert.That(result, Is.TypeOf<NotFoundObjectResult>());
             }
         }
 

@@ -45,8 +45,8 @@ namespace ExpensesAPI.Persistence
         public async Task UpdateScope(Scope scope, int id)
         {
             var editedScope = await context.Scopes.FirstOrDefaultAsync(s => s.Id == id);
-            //if (editedScope == null)
-            //    throw new ArgumentOutOfRangeException(message: "Żądany zeszyt nie istnieje", innerException: null);
+            if (editedScope == null)
+                throw new ArgumentOutOfRangeException(message: "Żądany zeszyt nie istnieje", innerException: null);
 
             editedScope.Name = scope.Name;
             context.Scopes.Update(editedScope);
@@ -60,6 +60,11 @@ namespace ExpensesAPI.Persistence
                 .Include(s => s.ScopeUsers)
                     .ThenInclude(su => su.User)
                 .FirstOrDefaultAsync(s => s.Id == id);
+        }
+
+        public void RemoveUserFromScope(Scope scope, ScopeUser scopeUser)
+        {
+            scope.ScopeUsers.Remove(scopeUser);
         }
     }
 }

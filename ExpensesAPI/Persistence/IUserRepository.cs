@@ -11,5 +11,6 @@ namespace ExpensesAPI.Persistence
         Task<User> GetUserAsync(string id);
         Task<User> GetUserWithScopesAsync(string id);
         Task<List<User>> GetUserListAsync(string query, string myId);
+        Task AssingScopeToUser(string userId, Scope scope);
     }
 }
