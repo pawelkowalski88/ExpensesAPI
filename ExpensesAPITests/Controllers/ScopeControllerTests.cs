@@ -219,7 +219,7 @@ namespace ExpensesAPITests.Controllers
             var controller = new ScopeController(scopeRepository.Object, unitOfWork.Object, httpContextAccessor.Object, userRepository.Object, mapper);
 
             var result = await controller.CreateScope(new ScopeResource { Name = "NewlyCreatedScope" });
-            userRepository.Verify(r => r.AssingScopeToUser(It.IsAny<string>(), It.IsAny<Scope>()));
+            userRepository.Verify(r => r.SetSelectedScope(It.IsAny<string>(), It.IsAny<int>()));
         }
 
         [Test]

@@ -90,7 +90,7 @@ namespace ExpensesAPI.Controllers
             var newScope = await repository.GetScope(scope.Id);
             if (user.SelectedScope == null)
             {
-                userRepository.AssingScopeToUser(user.Id, newScope);
+                userRepository.SetSelectedScope(user.Id, scope.Id);
                 //user.SelectedScope = newScope;
                 //await unitOfWork.CompleteAsync();
             }

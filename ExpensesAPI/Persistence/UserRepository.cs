@@ -15,10 +15,16 @@ namespace ExpensesAPI.Persistence
             this.context = context;
         }
 
-        public async Task AssingScopeToUser(string userId, Scope scope)
+        public async Task SetSelectedScope(string userId, int scopeId)
         {
-            var user = await context.Users
-                .FirstOrDefaultAsync(u => u.Id == userId);
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                throw new ArgumentOutOfRangeException("Nie znaleziono użytkownika.");
+
+            var scope = context.Scopes.FirstOrDefault(s => s.Id == scopeId);
+            if (scope == null)
+                throw new ArgumentOutOfRangeException("Nie znaleziono zeszytu.");
+
             user.SelectedScope = scope;
         }
 
@@ -52,7 +58,5 @@ namespace ExpensesAPI.Persistence
                 .Include(u => u.OwnedScopes)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
-
-        
     }
 }
