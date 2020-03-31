@@ -1,15 +1,16 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
+using ExpensesAPI.Models;
+using ExpensesAPI.Persistence;
+using ExpensesAPI.SimpleJWTAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace ExpensesAPI
 {
@@ -25,7 +26,47 @@ namespace ExpensesAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+            var database = Configuration.GetSection("Database")["Vendor"];
+
+            switch (database)
+            {
+                case "mysql":
+                    services.AddDbContext<MainDbContext>(options => options.UseMySql(Configuration.GetConnectionString("MySQL")));
+                    break;
+                case "sqlite":
+                    services.AddDbContext<MainDbContext>(options => options.UseSqlite("Data Source=expenses.db"));
+                    break;
+                case "mssqlserver":
+                    services.AddDbContext<MainDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+                    break;
+
+                default:
+                    throw new System.Exception("No database configured.");
+            }
+
+            services.TryAddTransient<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddScoped<IUnitOfWork, EFUnitOfWork>();
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IExpenseRepository, ExpenseRepository>();
+            services.AddScoped<IScopeRepository, ScopeRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            services.AddAutoMapper(typeof(Startup));
+
+            services.AddSimpleJWTAuth<User, MainDbContext>(Configuration);
+
+            services.AddControllers(); 
+            
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowSpecificOrigins",
+                b =>
+                {
+                    b.WithOrigins("http://localhost:4200")
+                        .AllowAnyHeader()
+                        .AllowAnyMethod();
+                });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
