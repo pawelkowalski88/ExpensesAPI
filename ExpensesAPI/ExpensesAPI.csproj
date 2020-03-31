@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ExpensesAPI.SimpleJWTAuth\ExpensesAPI.SimpleJWTAuth.csproj" />
+    <ProjectReference Include="..\ExpensesAPI.Persistence\ExpensesAPI.Persistence.csproj" />
   </ItemGroup>
 
 

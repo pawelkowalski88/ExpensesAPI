@@ -1,5 +1,5 @@
 using AutoMapper;
-using ExpensesAPI.Models;
+using ExpensesAPI.Persistence.Models;
 using ExpensesAPI.Persistence;
 using ExpensesAPI.SimpleJWTAuth;
 using Microsoft.AspNetCore.Builder;
