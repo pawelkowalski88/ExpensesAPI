@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using ExpensesAPI.Models;
+using ExpensesAPI.Persistence.Models;
 using ExpensesAPI.Persistence;
-using ExpensesAPI.Resources;
+using ExpensesAPI.Persistence.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

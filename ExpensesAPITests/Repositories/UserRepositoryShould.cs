@@ -1,4 +1,4 @@
-﻿using ExpensesAPI.Models;
+﻿using ExpensesAPI.Persistence.Models;
 using ExpensesAPI.Persistence;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;

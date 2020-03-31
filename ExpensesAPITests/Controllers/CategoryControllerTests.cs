@@ -1,9 +1,9 @@
 ﻿using AutoMapper;
 using ExpensesAPI.Controllers;
-using ExpensesAPI.Mapping;
-using ExpensesAPI.Models;
+using ExpensesAPI.Persistence.Mapping;
+using ExpensesAPI.Persistence.Models;
 using ExpensesAPI.Persistence;
-using ExpensesAPI.Resources;
+using ExpensesAPI.Persistence.Resources;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
