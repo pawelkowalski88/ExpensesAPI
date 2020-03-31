@@ -2,6 +2,7 @@
 using ExpensesAPI.Models;
 using ExpensesAPI.Persistence;
 using ExpensesAPI.Resources;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ using System.Threading.Tasks;
 
 namespace ExpensesAPI.Controllers
 {
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IHttpContextAccessor httpContextAccessor;
