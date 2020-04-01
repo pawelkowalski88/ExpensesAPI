@@ -18,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\ExpensesAPI.Persistence\ExpensesAPI.Domain.csproj" />
     <ProjectReference Include="..\ExpensesAPI.SimpleJWTAuth\ExpensesAPI.SimpleJWTAuth.csproj" />
-    <ProjectReference Include="..\ExpensesAPI.Persistence\ExpensesAPI.Persistence.csproj" />
   </ItemGroup>
 
 

@@ -1,12 +1,12 @@
 ﻿using AutoMapper;
-using ExpensesAPI.Persistence.Models;
-using ExpensesAPI.Persistence.Resources;
+using ExpensesAPI.Domain.Models;
+using ExpensesAPI.Domain.Resources;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpensesAPI.Persistence.Mapping
+namespace ExpensesAPI.Domain.Mapping
 {
     public class MainMappingProfile : Profile
     {

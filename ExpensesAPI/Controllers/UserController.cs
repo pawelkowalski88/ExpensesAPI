@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using ExpensesAPI.Persistence.Models;
-using ExpensesAPI.Persistence;
-using ExpensesAPI.Persistence.Resources;
+using ExpensesAPI.Domain.Models;
+using ExpensesAPI.Domain;
+using ExpensesAPI.Domain.Resources;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ExpensesAPI.Domain.Persistence;
 
 namespace ExpensesAPI.Controllers
 {

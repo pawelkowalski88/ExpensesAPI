@@ -1,11 +1,11 @@
-﻿using ExpensesAPI.Persistence.Models;
+﻿using ExpensesAPI.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpensesAPI.Persistence
+namespace ExpensesAPI.Domain.Persistence
 {
     public class CategoryRepository : ICategoryRepository
     {

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
-using ExpensesAPI.Persistence;
 using Microsoft.AspNetCore.Identity;
-using ExpensesAPI.Persistence.Models;
+using ExpensesAPI.Domain.Models;
 using AutoMapper;
 using System.Threading.Tasks;
 using ExpensesAPI.SimpleJWTAuth.Resources;
@@ -10,7 +9,6 @@ namespace ExpensesAPI.SimpleJWTAuth
 {
     public class AccountController : ControllerBase
     {
-        private readonly MainDbContext mainDbContext;
         private readonly UserManager<User> userManager;
         private readonly IMapper mapper;
 
@@ -20,7 +18,7 @@ namespace ExpensesAPI.SimpleJWTAuth
             this.mapper = mapper;
         }
 
-                [HttpPost("/api/accounts")]
+        [HttpPost("/api/accounts")]
         public async Task<IActionResult> Post([FromBody]RegistrationResource model)
         {
             if (!ModelState.IsValid)

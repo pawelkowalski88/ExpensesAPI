@@ -18,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ExpensesAPI.Persistence\ExpensesAPI.Persistence.csproj" />
+    <ProjectReference Include="..\ExpensesAPI.Persistence\ExpensesAPI.Domain.csproj" />
   </ItemGroup>
 
 </Project>
