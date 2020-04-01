@@ -5,7 +5,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpensesAPI.Persistence.Models
+namespace ExpensesAPI.Domain.Models
 {
     public class User : IdentityUser
     {

@@ -1,9 +1,9 @@
-﻿using ExpensesAPI.Persistence.Models;
+﻿using ExpensesAPI.Domain.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace ExpensesAPI.Persistence
+namespace ExpensesAPI.Domain.Persistence
 {
     public class MainDbContext : IdentityDbContext<User>
     {

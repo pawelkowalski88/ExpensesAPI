@@ -1,4 +1,4 @@
-﻿namespace ExpensesAPI.Persistence.Models
+﻿namespace ExpensesAPI.Domain.Models
 {
     public interface ISortingQuery
     {

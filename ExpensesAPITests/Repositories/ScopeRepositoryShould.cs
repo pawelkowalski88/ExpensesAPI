@@ -1,5 +1,5 @@
-﻿using ExpensesAPI.Persistence.Models;
-using ExpensesAPI.Persistence;
+﻿using ExpensesAPI.Domain.Models;
+using ExpensesAPI.Domain.Persistence;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;

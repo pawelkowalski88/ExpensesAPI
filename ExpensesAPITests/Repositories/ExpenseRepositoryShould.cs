@@ -1,12 +1,10 @@
-﻿using ExpensesAPI.Persistence.Models;
-using ExpensesAPI.Persistence;
+﻿using ExpensesAPI.Domain.Models;
+using ExpensesAPI.Domain.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ExpensesAPITests.Repositories

@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPITests", "Expense
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.SimpleJWTAuth", "ExpensesAPI.SimpleJWTAuth\ExpensesAPI.SimpleJWTAuth.csproj", "{55CA89A1-16FC-4AB3-953E-45E9570DC3A1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.Persistence", "ExpensesAPI.Persistence\ExpensesAPI.Persistence.csproj", "{E729971A-57EC-4675-B881-6E9FD1F85210}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.Domain", "ExpensesAPI.Persistence\ExpensesAPI.Domain.csproj", "{E729971A-57EC-4675-B881-6E9FD1F85210}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

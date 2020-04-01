@@ -1,6 +1,6 @@
 using AutoMapper;
-using ExpensesAPI.Persistence.Models;
-using ExpensesAPI.Persistence;
+using ExpensesAPI.Domain.Models;
+using ExpensesAPI.Domain;
 using ExpensesAPI.SimpleJWTAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -11,6 +11,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using ExpensesAPI.Domain.Persistence;
+using System.Reflection;
 
 namespace ExpensesAPI
 {
@@ -51,11 +53,13 @@ namespace ExpensesAPI
             services.AddScoped<IScopeRepository, ScopeRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
 
-            services.AddAutoMapper(typeof(Startup));
+            services.AddAutoMapper(Assembly.Load("ExpensesAPI"), Assembly.Load("ExpensesAPI.SimpleJWTAuth"));
 
             services.AddSimpleJWTAuth<User, MainDbContext>(Configuration);
 
-            services.AddControllers(); 
+
+            services.AddControllers();
+                //.AddApplicationPart(Assembly.Load("ExpensesAPI.SimpleJWTAuth")).AddControllersAsServices();
             
             services.AddCors(options =>
             {

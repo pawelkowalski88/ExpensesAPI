@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpensesAPI.Persistence.Models
+namespace ExpensesAPI.Domain.Models
 {
     public class Expense
     {
