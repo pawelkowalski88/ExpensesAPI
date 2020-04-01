@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI", "ExpensesAPI\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPITests", "ExpensesAPITests\ExpensesAPITests.csproj", "{C7CC8D4D-84AF-4AAF-9552-BD71F80027BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpensesAPI.SimpleJWTAuth", "ExpensesAPI.SimpleJWTAuth\ExpensesAPI.SimpleJWTAuth.csproj", "{55CA89A1-16FC-4AB3-953E-45E9570DC3A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.SimpleJWTAuth", "ExpensesAPI.SimpleJWTAuth\ExpensesAPI.SimpleJWTAuth.csproj", "{55CA89A1-16FC-4AB3-953E-45E9570DC3A1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.Persistence", "ExpensesAPI.Persistence\ExpensesAPI.Persistence.csproj", "{E729971A-57EC-4675-B881-6E9FD1F85210}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{55CA89A1-16FC-4AB3-953E-45E9570DC3A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55CA89A1-16FC-4AB3-953E-45E9570DC3A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55CA89A1-16FC-4AB3-953E-45E9570DC3A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E729971A-57EC-4675-B881-6E9FD1F85210}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E729971A-57EC-4675-B881-6E9FD1F85210}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E729971A-57EC-4675-B881-6E9FD1F85210}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E729971A-57EC-4675-B881-6E9FD1F85210}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
