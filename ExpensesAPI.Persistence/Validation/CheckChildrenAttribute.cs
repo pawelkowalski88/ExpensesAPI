@@ -12,7 +12,7 @@ namespace ExpensesAPI.Domain.Validation
         protected override ValidationResult IsValid(object value, ValidationContext validationContext)
         {
             var result = new ListValidationResult();
-            result.ErrorMessage = $"Error occurred at {validationContext.DisplayName}";
+            //result.ErrorMessage = $"Error occurred at {validationContext.DisplayName}";
 
             IEnumerable list = value as IEnumerable;
 
@@ -33,7 +33,7 @@ namespace ExpensesAPI.Domain.Validation
                     var context = new ValidationContext(item);
 
                     var nestedParentResult = new ListValidationResult();
-                    result.ErrorMessage = $"Error occurred at {validationContext.DisplayName}";
+                    //result.ErrorMessage = $"Error occurred at {validationContext.DisplayName}";
 
                     Validator.TryValidateObject(item, context, nestedItemResult, true);
 
