@@ -10,7 +10,6 @@ namespace ExpensesAPI.Domain.Resources
     public class SaveExpenseCollectionResource
     {
         [Required]
-        [CheckChildren]
         public List<ExpenseResourceBase> Expenses { get; set; }
     }
 }

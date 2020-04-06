@@ -48,7 +48,8 @@ namespace ExpensesAPI.Controllers
             var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
 
             var user = await userRepository.GetUserAsync(claim.Value);
-            return Ok(mapper.Map<UserResource>(user));
+            var result = mapper.Map<UserResource>(user);
+            return Ok(result);
         }
 
         [HttpGet("api/user/list/{scopeId}")]

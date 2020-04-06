@@ -17,5 +17,7 @@ namespace ExpensesAPI.Domain.Resources
 
         [Range(1, int.MaxValue)]
         public int CategoryId { get; set; }
+
+        public int ScopeId { get; set; }
     }
 }
