@@ -41,7 +41,7 @@ namespace ExpensesAPI.SimpleJWTAuth
         /// <summary>
         /// Set the timespan the token will be valid for (default is 120 min)
         /// </summary>
-        public TimeSpan ValidFor { get; set; } = TimeSpan.FromMinutes(1);
+        public TimeSpan ValidFor { get; set; } = TimeSpan.FromMinutes(15);
 
 
 

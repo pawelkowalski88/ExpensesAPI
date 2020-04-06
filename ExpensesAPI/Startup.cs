@@ -1,18 +1,17 @@
 using AutoMapper;
 using ExpensesAPI.Domain.Models;
-using ExpensesAPI.Domain;
 using ExpensesAPI.SimpleJWTAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using ExpensesAPI.Domain.Persistence;
 using System.Reflection;
+using Newtonsoft.Json;
+using Expenses.FileImporter;
 
 namespace ExpensesAPI
 {
@@ -52,14 +51,15 @@ namespace ExpensesAPI
             services.AddScoped<IExpenseRepository, ExpenseRepository>();
             services.AddScoped<IScopeRepository, ScopeRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IFileImporter, CSVImporter>();
 
-            services.AddAutoMapper(Assembly.Load("ExpensesAPI"), Assembly.Load("ExpensesAPI.SimpleJWTAuth"));
+            services.AddAutoMapper(Assembly.Load("ExpensesAPI.Domain"), Assembly.Load("ExpensesAPI.SimpleJWTAuth"));
 
             services.AddSimpleJWTAuth<User, MainDbContext>(Configuration);
 
 
-            services.AddControllers();
-                //.AddApplicationPart(Assembly.Load("ExpensesAPI.SimpleJWTAuth")).AddControllersAsServices();
+            services.AddControllers()
+                .AddNewtonsoftJson(o => { o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; });
             
             services.AddCors(options =>
             {
@@ -76,19 +76,19 @@ namespace ExpensesAPI
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
-            {
-                app.UseDeveloperExceptionPage();
-            }
-
-            app.UseHttpsRedirection();
-
             app.UseRouting();
 
+            // global cors policy
+            app.UseCors(x => x
+                .AllowAnyOrigin()
+                .AllowAnyMethod()
+                .AllowAnyHeader());
+
+            app.UseStaticFiles();
+            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints =>
-            {
+            app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
             });
         }
