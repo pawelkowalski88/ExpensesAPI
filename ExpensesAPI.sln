@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.SimpleJWTAuth",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.Domain", "ExpensesAPI.Persistence\ExpensesAPI.Domain.csproj", "{E729971A-57EC-4675-B881-6E9FD1F85210}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Expenses.FileImporter", "Expenses.FileImporter\Expenses.FileImporter.csproj", "{A5A9DE86-1F2C-4651-9E08-6188DBB3DF1B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Expenses.FileImporter", "Expenses.FileImporter\Expenses.FileImporter.csproj", "{A5A9DE86-1F2C-4651-9E08-6188DBB3DF1B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Expenses.FileImporter.Tests", "Expenses.FileImporter.Tests\Expenses.FileImporter.Tests.csproj", "{EEE885E6-5430-4660-9BC9-C204E0BB5BDE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{A5A9DE86-1F2C-4651-9E08-6188DBB3DF1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5A9DE86-1F2C-4651-9E08-6188DBB3DF1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A5A9DE86-1F2C-4651-9E08-6188DBB3DF1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEE885E6-5430-4660-9BC9-C204E0BB5BDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEE885E6-5430-4660-9BC9-C204E0BB5BDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEE885E6-5430-4660-9BC9-C204E0BB5BDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEE885E6-5430-4660-9BC9-C204E0BB5BDE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
