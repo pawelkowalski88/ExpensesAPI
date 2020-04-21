@@ -12,6 +12,7 @@ using ExpensesAPI.Domain.Persistence;
 using System.Reflection;
 using Newtonsoft.Json;
 using Expenses.FileImporter;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace ExpensesAPI
 {
@@ -55,8 +56,14 @@ namespace ExpensesAPI
 
             services.AddAutoMapper(Assembly.Load("ExpensesAPI.Domain"), Assembly.Load("ExpensesAPI.SimpleJWTAuth"));
 
-            services.AddSimpleJWTAuth<User, MainDbContext>(Configuration);
+            //services.AddSimpleJWTAuth<User, MainDbContext>(Configuration);
 
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = "https://localhost:5000";
+                    options.Audience = "ExpensesAPI";
+                });
 
             services.AddControllers()
                 .AddNewtonsoftJson(o => { o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; });

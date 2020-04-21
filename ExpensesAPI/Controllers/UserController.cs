@@ -71,52 +71,53 @@ namespace ExpensesAPI.Controllers
         [HttpGet("api/user/picture")]
         public async Task<IActionResult> GetUserPicture()
         {
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserAsync(claim.Value);
+            //var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
+            //var user = await userRepository.GetUserAsync(claim.Value);
 
-            if (user.PictureUrl != null)
-            {
-                var file = Path.Combine(Directory.GetCurrentDirectory(),
-                            "PictureFiles", user.PictureUrl);
-                return PhysicalFile(file, "image/jpeg");
-            }
-            return BadRequest("Dany użytkownik nie posiada przypisanego obrazu.");
+            //if (user.PictureUrl != null)
+            //{
+            //    var file = Path.Combine(Directory.GetCurrentDirectory(),
+            //                "PictureFiles", user.PictureUrl);
+            //    return PhysicalFile(file, "image/jpeg");
+            //}
+            //return BadRequest("Dany użytkownik nie posiada przypisanego obrazu.");
+            return BadRequest("Funkcja nie zaimplementowana.");
         }
 
         [HttpPost("api/user/picture")]
         public async Task<IActionResult> SaveUserPicture(IFormFile file)
         {
-            try
-            {
-                var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-                var user = await userRepository.GetUserAsync(claim.Value);
+            //try
+            //{
+            //    var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
+            //    var user = await userRepository.GetUserAsync(claim.Value);
 
-                var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "PictureFiles");
-                if (!Directory.Exists(uploadsFolderPath))
-                    Directory.CreateDirectory(uploadsFolderPath);
+            //    var uploadsFolderPath = Path.Combine(Directory.GetCurrentDirectory(), "PictureFiles");
+            //    if (!Directory.Exists(uploadsFolderPath))
+            //        Directory.CreateDirectory(uploadsFolderPath);
 
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
-                var filePath = Path.Combine(uploadsFolderPath, fileName);
+            //    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
+            //    var filePath = Path.Combine(uploadsFolderPath, fileName);
 
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    file.CopyTo(stream);
-                }
+            //    using (var stream = new FileStream(filePath, FileMode.Create))
+            //    {
+            //        file.CopyTo(stream);
+            //    }
 
-                var oldPictureName = user.PictureUrl;
-                user.PictureUrl = fileName;
-                unitOfWork.CompleteAsync();
+            //    var oldPictureName = user.PictureUrl;
+            //    user.PictureUrl = fileName;
+            //    unitOfWork.CompleteAsync();
 
-                if (oldPictureName != null)
-                    System.IO.File.Delete(Path.Combine(uploadsFolderPath, oldPictureName));
+            //    if (oldPictureName != null)
+            //        System.IO.File.Delete(Path.Combine(uploadsFolderPath, oldPictureName));
 
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                return BadRequest(e.Message);
-            }
-
+            //    return Ok();
+            //}
+            //catch (Exception e)
+            //{
+            //    return BadRequest(e.Message);
+            //}
+            return BadRequest("Funkcja nie zaimplementowana.");
         }
 
         [HttpGet("api/user/selectedscope")]
@@ -142,16 +143,18 @@ namespace ExpensesAPI.Controllers
         [HttpPut("api/user")]
         public async Task<IActionResult> UpdateCurrentUser([FromBody] UserResource user)
         {
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            //var user = await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value);
-            var userCurrent = await userRepository.GetUserAsync(claim.Value);
+            //var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
+            ////var user = await mainDbContext.Users.SingleAsync(u => u.Id == claim.Value);
+            //var userCurrent = await userRepository.GetUserAsync(claim.Value);
 
-            userCurrent.FirstName = user.FirstName;
-            userCurrent.LastName = user.LastName;
-            userCurrent.Email = user.Email;
+            //userCurrent.FirstName = user.FirstName;
+            //userCurrent.LastName = user.LastName;
+            //userCurrent.Email = user.Email;
 
-            await unitOfWork.CompleteAsync();
-            return Ok(await userRepository.GetUserAsync(claim.Value));
+            //await unitOfWork.CompleteAsync();
+            //return Ok(await userRepository.GetUserAsync(claim.Value));
+
+            return BadRequest("Funkcja nie zaimplementowana.");
         }
     }
 

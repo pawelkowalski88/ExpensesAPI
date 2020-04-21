@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 
 namespace ExpensesAPI.Domain.Models
 {
-    public class User : IdentityUser
+    public class User
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string PictureUrl { get; set; }
+        public string Id { get; set; }
+        public string UserName { get; set; }
         public Scope SelectedScope { get; set; }
         public int? SelectedScopeId { get; set; }
         public ICollection<ScopeUser> ScopeUsers { get; set; }

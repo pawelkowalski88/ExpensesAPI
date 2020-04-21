@@ -5,11 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpensesAPI.Domain.Persistence
 {
-    public class MainDbContext : IdentityDbContext<User>
+    public class MainDbContext : DbContext
     {
         public DbSet<Category> Categories { get; set; }
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Scope> Scopes { get; set; }
+
+        public DbSet<User> Users { get; set; }
 
         public MainDbContext() { }
 

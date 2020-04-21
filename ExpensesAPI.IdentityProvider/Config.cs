@@ -13,7 +13,19 @@ namespace ExpensesAPI.IdentityProvider
             new List<IdentityResource>
             {
                 new IdentityResources.OpenId(),
-                new IdentityResources.Profile()
+                new IdentityResources.Profile(),
+                new IdentityResource
+                {
+                    Name = "expenses",
+                    DisplayName = "Expenses Profile",
+                    Emphasize = true,
+                    UserClaims = new List<string>
+                    {
+                        "FirstName",
+                        "LastName",
+                        "Email"
+                    }
+                }
             };
 
         public static IEnumerable<ApiResource> Apis =>
@@ -35,6 +47,8 @@ namespace ExpensesAPI.IdentityProvider
                     RequireConsent = false,
                     RequirePkce = true,
                     AllowAccessTokensViaBrowser = true,
+
+                   
 
                     AllowedCorsOrigins = { "http://localhost:4200" },
                     RedirectUris = { "http://localhost:4200/signin-callback" },
