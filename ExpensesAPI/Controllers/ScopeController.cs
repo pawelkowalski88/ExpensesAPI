@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ExpensesAPI.Domain.Persistence;
+using System.Security.Claims;
+using IdentityModel;
 
 namespace ExpensesAPI.Controllers
 {
@@ -38,11 +40,12 @@ namespace ExpensesAPI.Controllers
         [HttpGet("api/scopes")]
         public async Task<IActionResult> GetScopes()
         {
-            if (httpContextAccessor.HttpContext.User == null)
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
+
+            if (user == null)
                 return NotFound("Nie rozpoznano użytkownika.");
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserAsync(claim.Value);
             var scopes = await repository.GetScopes(user);
             return Ok(mapper.Map<List<ScopeResource>>(scopes));
         }
@@ -50,11 +53,11 @@ namespace ExpensesAPI.Controllers
         [HttpGet("api/scopes/{id}")]
         public async Task<IActionResult> GetScope(int id)
         {
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserAsync(claim.Value);
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
 
             var scope = await repository.GetScope(id);
             if (scope == null)
@@ -71,11 +74,15 @@ namespace ExpensesAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
+            var email = this.User.FindFirstValue(JwtClaimTypes.Email);
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserAsync(claim.Value);
+            if (user == null)
+            {
+                userRepository.AddUser(sub, email);
+                user = await userRepository.GetUserAsync(sub);
+            }
 
             var scopes = await repository.GetScopes();
 
@@ -103,11 +110,11 @@ namespace ExpensesAPI.Controllers
         [HttpDelete("/api/scopes/removeuser/{scopeId}")]
         public async Task<IActionResult> RemoveUserFromScope(int scopeId, string userId)
         {
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserWithScopesAsync(claim.Value);
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
 
             var scope = await repository.GetScope(scopeId);
             if (scope == null)
@@ -129,11 +136,11 @@ namespace ExpensesAPI.Controllers
         [HttpDelete("api/scopes/{id}")]
         public async Task<IActionResult> DeleteScope(int id)
         {
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserWithScopesAsync(claim.Value);
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
 
             var scope = await repository.GetScope(id);
 
@@ -158,11 +165,11 @@ namespace ExpensesAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserWithScopesAsync(claim.Value);
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
 
             var originalScope = await repository.GetScope(id);
             if (originalScope == null)
@@ -192,11 +199,11 @@ namespace ExpensesAPI.Controllers
         [HttpPost("/api/scopes/{scopeId}")]
         public async Task<IActionResult> AddUserToScope(int scopeId, string userId)
         {
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserWithScopesAsync(claim.Value);
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
 
             var userToBeAdded = await userRepository.GetUserAsync(userId);
 

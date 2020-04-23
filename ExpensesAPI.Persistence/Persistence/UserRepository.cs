@@ -59,5 +59,16 @@ namespace ExpensesAPI.Domain.Persistence
                 .Include(u => u.OwnedScopes)
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
+
+        public async Task AddUser(string id, string name)
+        {
+            context.Users.Add(new User
+            {
+                Id = id,
+                UserName = name
+            });
+
+            await context.SaveChangesAsync();
+        }
     }
 }

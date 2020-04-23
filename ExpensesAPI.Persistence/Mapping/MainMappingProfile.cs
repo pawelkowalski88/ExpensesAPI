@@ -13,7 +13,9 @@ namespace ExpensesAPI.Domain.Mapping
         public MainMappingProfile()
         {
             //Domain to API
-            CreateMap<User, UserResource>();
+            CreateMap<User, UserResource>()
+                .ForMember(ur => ur.Email,
+                    opt => opt.MapFrom(u => u.UserName));
             CreateMap<Category, CategoryResource>();
             CreateMap<Expense, ExpenseResourceBase>()
                 .ForMember(er => er.Date,

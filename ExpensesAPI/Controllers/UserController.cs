@@ -14,6 +14,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using ExpensesAPI.Domain.Persistence;
+using System.Security.Claims;
+using IdentityModel;
 
 namespace ExpensesAPI.Controllers
 {
@@ -123,8 +125,11 @@ namespace ExpensesAPI.Controllers
         [HttpGet("api/user/selectedscope")]
         public async Task<IActionResult> GetSelectedScope()
         {
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserAsync(claim.Value);
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
+
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
 
             return Ok(mapper.Map<ScopeResource>(user.SelectedScope));
         }
@@ -132,8 +137,11 @@ namespace ExpensesAPI.Controllers
         [HttpPost("api/user/selectedscope")]
         public async Task<IActionResult> SetSelectedScope([FromBody] ScopeId scopeId)
         {
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
-            var user = await userRepository.GetUserAsync(claim.Value);
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
+
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
 
             user.SelectedScope = await scopeRepository.GetScope(scopeId.Id);
             await unitOfWork.CompleteAsync();
