@@ -1,4 +1,5 @@
-﻿using IdentityServer4;
+﻿using IdentityModel;
+using IdentityServer4;
 using IdentityServer4.Models;
 using System;
 using System.Collections.Generic;
@@ -14,18 +15,17 @@ namespace ExpensesAPI.IdentityProvider
             {
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),
-                new IdentityResource
-                {
-                    Name = "expenses",
-                    DisplayName = "Expenses Profile",
-                    Emphasize = true,
-                    UserClaims = new List<string>
-                    {
-                        "FirstName",
-                        "LastName",
-                        "Email"
-                    }
-                }
+                //new IdentityResource
+                //{
+                //    Name = "expenses",
+                //    DisplayName = "Expenses Profile",
+                //    Emphasize = false,
+                //    UserClaims = new List<string>
+                //    {
+                //        JwtClaimTypes.Id,
+                //        JwtClaimTypes.Email
+                //    }
+                //}
             };
 
         public static IEnumerable<ApiResource> Apis =>
@@ -47,7 +47,6 @@ namespace ExpensesAPI.IdentityProvider
                     RequireConsent = false,
                     RequirePkce = true,
                     AllowAccessTokensViaBrowser = true,
-
                    
 
                     AllowedCorsOrigins = { "http://localhost:4200" },

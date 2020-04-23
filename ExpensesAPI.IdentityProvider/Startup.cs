@@ -12,6 +12,7 @@ using ExpensesAPI.IdentityProvider.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using IdentityServer4.Services;
 
 namespace ExpensesAPI.IdentityProvider
 {
@@ -35,14 +36,20 @@ namespace ExpensesAPI.IdentityProvider
                 options.Password.RequireNonAlphanumeric = false;
             })
                 .AddEntityFrameworkStores<ApplicationDbContext>();
+
+            //services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, IdentityUserClaimsPrincipalFactory>();
+
             services.AddRazorPages();
+
+            services.AddTransient<IProfileService, IdentityProfileService>();
 
             services.AddIdentityServer()
                 .AddInMemoryIdentityResources(Config.Ids)
                 .AddInMemoryApiResources(Config.Apis)
                 .AddInMemoryClients(Config.Clients)
                 .AddDeveloperSigningCredential()
-                .AddAspNetIdentity<IdentityUser>();
+                .AddAspNetIdentity<IdentityUser>()
+                .AddProfileService<IdentityProfileService>();
 
             //services.AddIdentityServer()
             //     .AddInMemoryIdentityResources(
@@ -90,7 +97,7 @@ namespace ExpensesAPI.IdentityProvider
 
             app.UseCors("CORSPolicy");
 
-            app.UseAuthentication();
+            //app.UseAuthentication();
             app.UseIdentityServer();
             app.UseAuthorization();
 

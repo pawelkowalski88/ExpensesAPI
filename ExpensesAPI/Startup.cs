@@ -1,6 +1,4 @@
 using AutoMapper;
-using ExpensesAPI.Domain.Models;
-using ExpensesAPI.SimpleJWTAuth;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -13,6 +11,9 @@ using System.Reflection;
 using Newtonsoft.Json;
 using Expenses.FileImporter;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using IdentityServer4.AccessTokenValidation;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc.Authorization;
 
 namespace ExpensesAPI
 {
@@ -58,16 +59,33 @@ namespace ExpensesAPI
 
             //services.AddSimpleJWTAuth<User, MainDbContext>(Configuration);
 
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+            //services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+            //    .AddJwtBearer(options =>
+            //    {
+            //        options.Authority = "https://localhost:5000";
+            //        options.Audience = "ExpensesAPI";
+            //    });
+
+
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+                .AddIdentityServerAuthentication(o =>
                 {
-                    options.Authority = "https://localhost:5000";
-                    options.Audience = "ExpensesAPI";
+                    o.Authority = "https://localhost:5000";
+                    o.ApiName = "ExpensesAPI";
+                    o.RequireHttpsMetadata = false;
                 });
 
-            services.AddControllers()
+            services.AddControllers(o =>
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                    .RequireAuthenticatedUser()
+                    .Build();
+                o.Filters.Add(new AuthorizeFilter(policy));
+            })
                 .AddNewtonsoftJson(o => { o.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore; });
-            
+
+
+
             services.AddCors(options =>
             {
                 options.AddPolicy("AllowSpecificOrigins",
@@ -95,7 +113,8 @@ namespace ExpensesAPI
             app.UseAuthentication();
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => {
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapControllers();
             });
         }
