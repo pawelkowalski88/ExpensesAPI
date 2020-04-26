@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ExpensesAPI.Domain.Persistence;
+using System.Security.Claims;
+using IdentityModel;
 
 namespace ExpensesAPI.Controllers
 {
@@ -36,11 +38,12 @@ namespace ExpensesAPI.Controllers
         [HttpGet("/api/categories")]
         public async Task<IActionResult> GetCategories(bool includeExpenses)
         {
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var claim = httpContextAccessor.HttpContext.User.Claims.SingleOrDefault(c => c.Type == "id");
-            var currentScope = (await userRepository.GetUserAsync(claim.Value)).SelectedScope;
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
+            var currentScope = (await userRepository.GetUserAsync(sub)).SelectedScope;
 
             if (currentScope == null)
             {
