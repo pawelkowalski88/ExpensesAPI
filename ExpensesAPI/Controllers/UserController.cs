@@ -45,11 +45,11 @@ namespace ExpensesAPI.Controllers
         [HttpGet("api/user/details")]
         public async Task<IActionResult> GetUserDataAsync()
         {
-            if (httpContextAccessor.HttpContext.User == null)
-                return NotFound("Nie rozpoznano użytkownika.");
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var user = await userRepository.GetUserAsync(claim.Value);
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
             var result = mapper.Map<UserResource>(user);
             return Ok(result);
         }
@@ -57,9 +57,13 @@ namespace ExpensesAPI.Controllers
         [HttpGet("api/user/list/{scopeId}")]
         public async Task<IActionResult> GetUserList(string query)
         {
-            var claim = httpContextAccessor.HttpContext.User.Claims.Single(c => c.Type == "id");
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            var users = await userRepository.GetUserListAsync(query, claim.Value);
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
+
+            var users = await userRepository.GetUserListAsync(query, sub);
 
             var results = users.Select(u => {
                 var userResource = mapper.Map<UserResource>(u);
