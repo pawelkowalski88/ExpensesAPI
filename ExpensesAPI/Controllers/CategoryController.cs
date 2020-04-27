@@ -43,7 +43,7 @@ namespace ExpensesAPI.Controllers
 
             if (user == null)
                 return NotFound("Nie rozpoznano użytkownika.");
-            var currentScope = (await userRepository.GetUserAsync(sub)).SelectedScope;
+            var currentScope = user.SelectedScope;
 
             if (currentScope == null)
             {
@@ -57,14 +57,12 @@ namespace ExpensesAPI.Controllers
         [HttpPost("/api/categories")]
         public async Task<IActionResult> CreateCategory([FromBody] SaveCategoryResource categoryResource)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
 
-            if (httpContextAccessor.HttpContext.User == null)
+            if (user == null)
                 return NotFound("Nie rozpoznano użytkownika.");
-
-            var claim = httpContextAccessor.HttpContext.User.Claims.SingleOrDefault(c => c.Type == "id");
-            var currentScope = (await userRepository.GetUserAsync(claim.Value)).SelectedScope;
+            var currentScope = (await userRepository.GetUserAsync(sub)).SelectedScope;
 
             if (currentScope == null)
             {
@@ -93,10 +91,19 @@ namespace ExpensesAPI.Controllers
         [HttpDelete("/api/categories/{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
+
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
+
             var category = await repository.GetCategory(id, includeExpenses: true);
 
             if (category == null)
                 return NotFound("Nie znaleziono kategorii. Mogła zostać usunięta przez innego uzytkownika.");
+
+            if (!user.SelectedScope.Categories.Any(c => c.Id == id))
+                return BadRequest("Wybrana kategoria nie należy do aktualnie wybranego zeszytu.");
 
             if (category.Expenses.Count > 0)
                 return BadRequest("Do kategorii \"" + category.Name + "\" są przyporządkowane wydatki. Zmień ich kategorię lub usuń je przed usunięciem kategorii.");
@@ -112,6 +119,15 @@ namespace ExpensesAPI.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
+            var user = await userRepository.GetUserAsync(sub);
+
+            if (user == null)
+                return NotFound("Nie rozpoznano użytkownika.");
+
+            if (!user.SelectedScope.Categories.Any(c => c.Id == id))
+                return BadRequest("Wybrana kategoria nie należy do aktualnie wybranego zeszytu.");
 
             var category = mapper.Map<Category>(categoryResource);
 
