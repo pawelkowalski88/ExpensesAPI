@@ -31,10 +31,14 @@ namespace ExpensesAPI.Domain.Mapping
 
             //API to Domain
             CreateMap<SaveCategoryResource, Category>();
+            CreateMap<CategoryResource, Category>();
             CreateMap<ExpenseResourceBase, Expense>()
                 .ForMember(e => e.Date,
                     opt => opt.MapFrom(er => DateTime.Parse(er.Date)));
             CreateMap<ScopeResource, Scope>();
+            CreateMap<UserResource, User>()
+                .ForMember(u => u.UserName,
+                    opt => opt.MapFrom(ur => ur.Email));
         }
     }
 }
