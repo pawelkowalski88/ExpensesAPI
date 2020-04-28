@@ -8,7 +8,7 @@ using System.IO;
 
 namespace ExpensesAPI.Controllers
 {
-    [Authorize(Policy = "ApiUser")]
+    [Authorize]
     public class FileImportController : ControllerBase
     {
         private readonly IFileImporter importer;
