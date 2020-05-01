@@ -31,7 +31,8 @@ namespace ExpensesAPI.IdentityProvider
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>(options => { 
+            services.AddDefaultIdentity<IdentityUser>(options =>
+            {
                 options.SignIn.RequireConfirmedAccount = true;
                 options.Password.RequireNonAlphanumeric = false;
             })
@@ -39,7 +40,9 @@ namespace ExpensesAPI.IdentityProvider
 
             //services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, IdentityUserClaimsPrincipalFactory>();
 
-            services.AddRazorPages();
+            services.AddMvc(o => o.EnableEndpointRouting = false);
+            //services.AddRazorPages();
+            //services.AddControllers();
 
             services.AddTransient<IProfileService, IdentityProfileService>();
 
@@ -60,8 +63,6 @@ namespace ExpensesAPI.IdentityProvider
             //         Configuration.GetSection("IdentityServer:Clients"))
             //     .AddDeveloperSigningCredential()
             //     .AddAspNetIdentity<IdentityUser>();
-
-            services.AddRazorPages();
 
             services.AddCors(opts =>
             {
@@ -97,13 +98,15 @@ namespace ExpensesAPI.IdentityProvider
 
             app.UseCors("CORSPolicy");
 
-            //app.UseAuthentication();
+            app.UseAuthentication();
             app.UseIdentityServer();
             app.UseAuthorization();
 
+            //app.UseMvcWithDefaultRoute();
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapRazorPages();
+                endpoints.MapControllers();
+                //endpoints.MapRazorPages();
             });
         }
     }
