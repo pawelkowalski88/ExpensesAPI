@@ -44,7 +44,6 @@ namespace ExpensesAPI.Domain.Persistence
             {
                 var users = await context.Users
                     .Include(u => u.ScopeUsers)
-                    //.Where(u => (u.FirstName + " " + u.LastName).ToLower().Contains(query.ToLower()) && u.Id != myId)
                     .Where(u => (u.UserName).ToLower().Contains(query.ToLower()) && u.Id != myId)
                     .ToListAsync();
                 return users;
