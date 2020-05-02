@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI;
@@ -13,6 +10,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using IdentityServer4.Services;
+using ExpensesAPI.IdentityProvider.Repositories;
+using System.Reflection;
 
 namespace ExpensesAPI.IdentityProvider
 {
@@ -31,18 +30,15 @@ namespace ExpensesAPI.IdentityProvider
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>(options =>
+            services.AddDefaultIdentity<User>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
                 options.Password.RequireNonAlphanumeric = false;
             })
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
-            //services.AddScoped<IUserClaimsPrincipalFactory<IdentityUser>, IdentityUserClaimsPrincipalFactory>();
-
-            services.AddMvc(o => o.EnableEndpointRouting = false);
-            //services.AddRazorPages();
-            //services.AddControllers();
+            services.AddRazorPages();
+            services.AddControllers();
 
             services.AddTransient<IProfileService, IdentityProfileService>();
 
@@ -51,18 +47,11 @@ namespace ExpensesAPI.IdentityProvider
                 .AddInMemoryApiResources(Config.Apis)
                 .AddInMemoryClients(Config.Clients)
                 .AddDeveloperSigningCredential()
-                .AddAspNetIdentity<IdentityUser>()
+                .AddAspNetIdentity<User>()
                 .AddProfileService<IdentityProfileService>();
 
-            //services.AddIdentityServer()
-            //     .AddInMemoryIdentityResources(
-            //         Configuration.GetSection("IdentityServer:IdentityResources"))
-            //     .AddInMemoryApiResources(
-            //         Configuration.GetSection("IdentityServer:ApiResources"))
-            //     .AddInMemoryClients(
-            //         Configuration.GetSection("IdentityServer:Clients"))
-            //     .AddDeveloperSigningCredential()
-            //     .AddAspNetIdentity<IdentityUser>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddAutoMapper(Assembly.Load("ExpensesAPI.IdentityProvider"));
 
             services.AddCors(opts =>
             {
@@ -106,7 +95,7 @@ namespace ExpensesAPI.IdentityProvider
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                //endpoints.MapRazorPages();
+                endpoints.MapRazorPages();
             });
         }
     }

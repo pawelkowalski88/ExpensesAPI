@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ExpensesAPI.IdentityProvider.Repositories
-{
+namespace ExpensesAPI.IdentityProvider.Controllers 
+{ 
     public class UserResource
     {
         public string Id { get; set; }
