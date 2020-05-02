@@ -2,35 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using IdentityServer4.Events;
-using IdentityServer4.Extensions;
-using IdentityServer4.Services;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
+using ExpensesAPI.IdentityProvider.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
+using IdentityServer4.Services;
+using Microsoft.AspNetCore.Authentication;
+using IdentityServer4.Events;
+using IdentityServer4.Extensions;
 
 namespace ExpensesAPI.IdentityProvider.Areas.Identity.Pages.Account
 {
     [AllowAnonymous]
     public class LogoutModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly ILogger<LogoutModel> _logger;
         private IIdentityServerInteractionService _interaction;
         private IEventService _events;
 
-        public LogoutModel(SignInManager<IdentityUser> signInManager, 
-            ILogger<LogoutModel> logger,
-            IIdentityServerInteractionService interaction,
-            IEventService events)
+        public LogoutModel(SignInManager<User> signInManager, ILogger<LogoutModel> logger)
         {
             _signInManager = signInManager;
             _logger = logger;
-            _interaction = interaction;
-            _events = events;
         }
 
         public async Task<IActionResult> OnGet(string logoutId = null)

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ExpensesAPI.IdentityProvider.Controllers
 {
-    //[Route("api/[controller]")]
+    [Route("api/[controller]")]
     [ApiController]
     [Authorize]
     public class AccountController : ControllerBase
@@ -26,7 +26,7 @@ namespace ExpensesAPI.IdentityProvider.Controllers
             this.mapper = mapper;
         }
 
-        [HttpGet("api/account/list")]
+        [HttpGet("list")]
         public async Task<IActionResult> GetUserNames(string query)
         {
             var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);

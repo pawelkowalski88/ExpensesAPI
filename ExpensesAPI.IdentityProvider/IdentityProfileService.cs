@@ -1,4 +1,5 @@
-﻿using IdentityModel;
+﻿using ExpensesAPI.IdentityProvider.Data;
+using IdentityModel;
 using IdentityServer4.Extensions;
 using IdentityServer4.Models;
 using IdentityServer4.Services;
@@ -13,10 +14,10 @@ namespace ExpensesAPI.IdentityProvider
 {
     public class IdentityProfileService : IProfileService
     {
-        private readonly UserManager<IdentityUser> userManager;
-        private readonly IUserClaimsPrincipalFactory<IdentityUser> claimsPrincipalFactory;
+        private readonly UserManager<User> userManager;
+        private readonly IUserClaimsPrincipalFactory<User> claimsPrincipalFactory;
 
-        public IdentityProfileService(UserManager<IdentityUser> userManager, IUserClaimsPrincipalFactory<IdentityUser> claimsPrincipalFactory)
+        public IdentityProfileService(UserManager<User> userManager, IUserClaimsPrincipalFactory<User> claimsPrincipalFactory)
         {
             this.userManager = userManager;
             this.claimsPrincipalFactory = claimsPrincipalFactory;
