@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Expenses.FileImporter", "Ex
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Expenses.FileImporter.Tests", "Expenses.FileImporter.Tests\Expenses.FileImporter.Tests.csproj", "{EEE885E6-5430-4660-9BC9-C204E0BB5BDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpensesAPI.IdentityProvider", "ExpensesAPI.IdentityProvider\ExpensesAPI.IdentityProvider.csproj", "{0FA23D67-3AEC-41DE-96EF-53C24012D95D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExpensesAPI.IdentityProvider", "ExpensesAPI.IdentityProvider\ExpensesAPI.IdentityProvider.csproj", "{0FA23D67-3AEC-41DE-96EF-53C24012D95D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExpensesAPI.IdentityProvider.API", "ExpensesAPI.IdentityProvider.API\ExpensesAPI.IdentityProvider.API.csproj", "{7885BA9A-AC09-4D47-873B-F1DC775A064C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{0FA23D67-3AEC-41DE-96EF-53C24012D95D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FA23D67-3AEC-41DE-96EF-53C24012D95D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FA23D67-3AEC-41DE-96EF-53C24012D95D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7885BA9A-AC09-4D47-873B-F1DC775A064C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7885BA9A-AC09-4D47-873B-F1DC775A064C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7885BA9A-AC09-4D47-873B-F1DC775A064C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7885BA9A-AC09-4D47-873B-F1DC775A064C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
