@@ -197,7 +197,7 @@ namespace ExpensesAPI.Controllers
         }
 
         [HttpPost("/api/scopes/{scopeId}")]
-        public async Task<IActionResult> AddUserToScope(int scopeId, string userId)
+        public async Task<IActionResult> AddUserToScope(int scopeId, string userId, string userEmail)
         {
             var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
             var user = await userRepository.GetUserAsync(sub);
@@ -208,7 +208,8 @@ namespace ExpensesAPI.Controllers
             var userToBeAdded = await userRepository.GetUserAsync(userId);
 
             if (userToBeAdded == null)
-                return BadRequest("Nie znaleziono użytkownika");
+                //return BadRequest("Nie znaleziono użytkownika");
+                await userRepository.AddUser(userId, userEmail);
 
             var scope = user.OwnedScopes.FirstOrDefault(s => s.Id == scopeId);
 

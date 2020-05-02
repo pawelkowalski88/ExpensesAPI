@@ -32,6 +32,7 @@ namespace ExpensesAPI.Domain.Persistence
         {
             return await context.Users
                 .Include(u => u.SelectedScope)
+                .Include(u => u.OwnedScopes)
                 .Include(u => u.ScopeUsers)
                     .ThenInclude(su => su.Scope)
                         .ThenInclude(s => s.Owner)
