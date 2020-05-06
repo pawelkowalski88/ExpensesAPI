@@ -31,7 +31,8 @@ namespace ExpensesAPI.IdentityProvider
         public static IEnumerable<ApiResource> Apis =>
             new List<ApiResource>
             {
-                new ApiResource("ExpensesAPI", "Expenses API")
+                new ApiResource("ExpensesAPI", "Expenses API"),
+                new ApiResource("ExpensesIdentityServerUsersAPI", "Expenses IdentityServer Users API")
             };
 
         public static IEnumerable<Client> Clients =>
@@ -61,6 +62,16 @@ namespace ExpensesAPI.IdentityProvider
                     },
 
                     AllowOfflineAccess = true
+                },
+
+                new Client
+                {
+                    ClientId = "ExpensesAPIClient",
+                    ClientSecrets = { new Secret("D7t7r4rahf9ZyyMweEeyKazeDPOV5vca".Sha256()) },
+
+                    AllowedGrantTypes = { "delegation" },
+
+                    AllowedScopes = { "ExpensesIdentityServerUsersAPI" }
                 }
             };
     }

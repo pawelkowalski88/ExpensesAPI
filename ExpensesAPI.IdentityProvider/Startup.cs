@@ -12,6 +12,7 @@ using Microsoft.Extensions.Hosting;
 using IdentityServer4.Services;
 using ExpensesAPI.IdentityProvider.Repositories;
 using System.Reflection;
+using IdentityServer4.Validation;
 
 namespace ExpensesAPI.IdentityProvider
 {
@@ -51,6 +52,8 @@ namespace ExpensesAPI.IdentityProvider
                 .AddProfileService<IdentityProfileService>();
 
             services.AddTransient<IUserRepository, UserRepository>();
+            services.AddScoped<IExtensionGrantValidator, DelegationGrantValidator>();
+
             services.AddAutoMapper(Assembly.Load("ExpensesAPI.IdentityProvider"));
 
             services.AddCors(opts =>

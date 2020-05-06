@@ -23,10 +23,12 @@ namespace ExpensesAPI.IdentityProvider.Areas.Identity.Pages.Account
         private IIdentityServerInteractionService _interaction;
         private IEventService _events;
 
-        public LogoutModel(SignInManager<User> signInManager, ILogger<LogoutModel> logger)
+        public LogoutModel(SignInManager<User> signInManager, ILogger<LogoutModel> logger, IIdentityServerInteractionService interaction, IEventService events)
         {
             _signInManager = signInManager;
             _logger = logger;
+            _interaction = interaction;
+            _events = events;
         }
 
         public async Task<IActionResult> OnGet(string logoutId = null)

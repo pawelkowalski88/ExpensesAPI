@@ -37,13 +37,14 @@ namespace ExpensesAPI.IdentityProvider.API.Controllers
 
             var users = await userRepository.GetUserListAsync(query, sub);
 
-            var results = users.Select(u => {
+            var results = users.Select(u =>
+            {
                 var userResource = mapper.Map<UserResource>(u);
                 //userResource.Selected = u.ScopeUsers.Any(su => su.ScopeId == u.SelectedScopeId);
                 return userResource;
-            });
+            }).ToList();
 
-            return Ok(results);
+            return Ok(users);
         }
 
     }

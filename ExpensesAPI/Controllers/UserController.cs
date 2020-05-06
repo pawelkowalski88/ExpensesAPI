@@ -16,6 +16,8 @@ using System.Threading.Tasks;
 using ExpensesAPI.Domain.Persistence;
 using System.Security.Claims;
 using IdentityModel;
+using Microsoft.Net.Http.Headers;
+using ExpensesAPI.Domain.ExternalAPIUtils;
 
 namespace ExpensesAPI.Controllers
 {
@@ -25,6 +27,7 @@ namespace ExpensesAPI.Controllers
         private readonly IHttpContextAccessor httpContextAccessor;
         private readonly IMapper mapper;
         private readonly IScopeRepository scopeRepository;
+        private readonly ITokenRepository tokenRepository;
         private readonly IHostingEnvironment host;
         private readonly IUnitOfWork unitOfWork;
         private readonly IUserRepository userRepository;
@@ -33,12 +36,14 @@ namespace ExpensesAPI.Controllers
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper,
             IScopeRepository scopeRepository,
+            ITokenRepository tokenRepository,
             IUnitOfWork unitOfWork)
         {
             this.userRepository = userRepository;
             this.httpContextAccessor = httpContextAccessor;
             this.mapper = mapper;
             this.scopeRepository = scopeRepository;
+            this.tokenRepository = tokenRepository;
             this.unitOfWork = unitOfWork;
         }
 
@@ -57,21 +62,33 @@ namespace ExpensesAPI.Controllers
         [HttpGet("api/user/list/{scopeId}")]
         public async Task<IActionResult> GetUserList(string query)
         {
+            //return BadRequest("Not implemented");
             var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
             var user = await userRepository.GetUserAsync(sub);
 
             if (user == null)
                 return NotFound("Nie rozpoznano użytkownika.");
 
-            var users = await userRepository.GetUserListAsync(query, sub);
+            tokenRepository.SetToken(Request.Headers[HeaderNames.Authorization]);
 
-            var results = users.Select(u => {
-                var userResource = mapper.Map<UserResource>(u);
-                userResource.Selected = u.ScopeUsers.Any(su => su.ScopeId == u.SelectedScopeId);
-                return userResource;
-            });
+            try
+            {
+                var users = await userRepository.GetUserListAsync(query, sub);
 
-            return Ok(results);
+                var results = users.Select(u =>
+                {
+                    var userResource = mapper.Map<UserResource>(u);
+                    userResource.Selected = u.ScopeUsers.Any(su => su.ScopeId == u.SelectedScopeId);
+                    return userResource;
+                });
+
+                return Ok(users);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.Message);
+            }
+
         }
 
         [HttpGet("api/user/picture")]
