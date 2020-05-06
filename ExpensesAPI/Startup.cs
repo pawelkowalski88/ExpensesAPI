@@ -10,10 +10,10 @@ using ExpensesAPI.Domain.Persistence;
 using System.Reflection;
 using Newtonsoft.Json;
 using Expenses.FileImporter;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using ExpensesAPI.Domain.ExternalAPIUtils;
 
 namespace ExpensesAPI
 {
@@ -52,8 +52,11 @@ namespace ExpensesAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IExpenseRepository, ExpenseRepository>();
             services.AddScoped<IScopeRepository, ScopeRepository>();
-            services.AddScoped<IUserRepository, UserRepository>();
+            //services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUserRepository, UserRepositoryExternalApi>();
             services.AddScoped<IFileImporter, CSVImporter>();
+
+            services.AddScoped<ITokenRepository, LastTokenRepository>();
 
             services.AddAutoMapper(Assembly.Load("ExpensesAPI.Domain"), Assembly.Load("ExpensesAPI.SimpleJWTAuth"));
 

@@ -16,6 +16,11 @@ namespace ExpensesAPI.Domain.Mapping
             CreateMap<User, UserResource>()
                 .ForMember(ur => ur.Email,
                     opt => opt.MapFrom(u => u.UserName));
+
+            CreateMap<IdentityServerUser, UserResource>()
+                .ForMember(ur => ur.Email,
+                    opt => opt.MapFrom(u => u.UserName));
+
             CreateMap<Category, CategoryResource>();
             CreateMap<Expense, ExpenseResourceBase>()
                 .ForMember(er => er.Date,
