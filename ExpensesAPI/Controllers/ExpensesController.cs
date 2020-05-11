@@ -22,9 +22,9 @@ namespace ExpensesAPI.Controllers
         private readonly IMapper mapper;
         private readonly IUnitOfWork unitOfWork;
         private readonly IHttpContextAccessor httpContextAccessor;
-        private readonly IUserRepository userRepository;
+        private readonly IUserRepository<User> userRepository;
 
-        public ExpenseController(IExpenseRepository expensesRepository, IUserRepository userRepository, IMapper mapper, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public ExpenseController(IExpenseRepository expensesRepository, IUserRepository<User> userRepository, IMapper mapper, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             this.repository = expensesRepository;
             this.mapper = mapper;

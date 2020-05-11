@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using ExpensesAPI.Domain.Persistence;
 using System.Security.Claims;
 using IdentityModel;
+using ExpensesAPI.Domain.ExternalAPIUtils;
+using Microsoft.Net.Http.Headers;
 
 namespace ExpensesAPI.Controllers
 {
@@ -21,20 +23,26 @@ namespace ExpensesAPI.Controllers
         private readonly IScopeRepository repository;
         private readonly IUnitOfWork unitOfWork;
         private readonly IHttpContextAccessor httpContextAccessor;
-        private readonly IUserRepository userRepository;
+        private readonly IUserRepository<User> userRepository;
+        private readonly IUserRepository<IdentityServerUser> idsUserRepository;
+        private readonly ITokenRepository tokenRepository;
         private readonly IMapper mapper;
 
         public ScopeController(
             IScopeRepository repository,
             IUnitOfWork unitOfWork,
             IHttpContextAccessor httpContextAccessor,
-            IUserRepository userRepository,
+            IUserRepository<User> userRepository,
+            IUserRepository<IdentityServerUser> idsUserRepository,
+            ITokenRepository tokenRepository,
             IMapper mapper)
         {
             this.repository = repository;
             this.unitOfWork = unitOfWork;
             this.httpContextAccessor = httpContextAccessor;
             this.userRepository = userRepository;
+            this.idsUserRepository = idsUserRepository;
+            this.tokenRepository = tokenRepository;
             this.mapper = mapper;
         }
         [HttpGet("api/scopes")]
@@ -46,8 +54,21 @@ namespace ExpensesAPI.Controllers
             if (user == null)
                 return NotFound("Nie rozpoznano użytkownika.");
 
+            tokenRepository.SetToken(Request.Headers[HeaderNames.Authorization]);
+
             var scopes = await repository.GetScopes(user);
-            return Ok(mapper.Map<List<ScopeResource>>(scopes));
+            var results = mapper.Map<List<ScopeResource>>(scopes);
+            var userIds = new List<string>(); 
+            foreach(var s in scopes)
+                userIds.AddRange(s.ScopeUsers.Select(su => su.UserId).ToList());
+            var userDetails = await idsUserRepository.GetUserDetails(userIds.ToList());
+            foreach (var scope in results)
+                foreach (var s in scope.ScopeUsers)
+                {
+                    s.User = mapper.Map<UserResource>(userDetails.FirstOrDefault(u => u.Id == s.UserId));
+                }
+
+            return Ok(results);
         }
 
         [HttpGet("api/scopes/{id}")]
@@ -65,7 +86,28 @@ namespace ExpensesAPI.Controllers
 
             if (scope.OwnerId != user.Id)
                 return Forbid();
-            return Ok(mapper.Map<ScopeResource>(scope));
+
+            var result = mapper.Map<ScopeResource>(scope);
+
+            try
+            {
+                tokenRepository.SetToken(Request.Headers[HeaderNames.Authorization]);
+                var userDetails = await idsUserRepository.GetUserDetails(scope.ScopeUsers.Select(su => su.UserId).ToList());
+                foreach (var s in result.ScopeUsers)
+                {
+                    s.User = mapper.Map<UserResource>(userDetails.FirstOrDefault(u => u.Id == s.UserId));
+                }
+            }
+            catch (Exception e)
+            {
+                foreach (var s in result.ScopeUsers)
+                {
+                    s.User = mapper.Map<UserResource>(new IdentityServerUser { Id = s.UserId, LastName = s.UserId });
+                }
+            }
+
+
+            return Ok(result);
         }
 
         [HttpPost("api/scopes")]
@@ -208,23 +250,29 @@ namespace ExpensesAPI.Controllers
             var userToBeAdded = await userRepository.GetUserAsync(userId);
 
             if (userToBeAdded == null)
+            {
                 //return BadRequest("Nie znaleziono użytkownika");
                 await userRepository.AddUser(userId, userEmail);
+                userToBeAdded = await userRepository.GetUserAsync(userId);
+            }
 
             var scope = user.OwnedScopes.FirstOrDefault(s => s.Id == scopeId);
 
             if (scope == null)
                 return NotFound("Nie znaleziono zeszytu.");
 
-            //if (scope.Owner.Id != user.Id)
-            //{
-            //    return BadRequest("Zeszyt nie należy do aktualnie zalogowanego użytkownika.");
-            //}
+            if (scope.Owner.Id != user.Id)
+            {
+                return BadRequest("Zeszyt nie należy do aktualnie zalogowanego użytkownika.");
+            }
+
+            if (scope.ScopeUsers.Any(su => su.UserId == userToBeAdded.Id))
+                return BadRequest("Użytkownik już dodany");
 
             scope.ScopeUsers.Add(new ScopeUser
             {
-                Scope = scope,
-                User = userToBeAdded
+                ScopeId = scope.Id,
+                UserId = userToBeAdded.Id
             });
             await unitOfWork.CompleteAsync();
             return Ok();

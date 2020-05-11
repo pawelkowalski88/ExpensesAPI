@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace ExpensesAPI.Domain.Persistence
 {
-    public class UserRepositoryExternalApi : IUserRepository
+    public class UserRepositoryExternalApi : IUserRepository<IdentityServerUser>
     {
         private MainDbContext context;
         private readonly ITokenRepository tokenRepository;
@@ -86,6 +86,28 @@ namespace ExpensesAPI.Domain.Persistence
 
             user.SelectedScope = scope;
         }
+        public async Task<List<User>> GetUserDetails(List<string> ids)
+        {
+            var tokenResponse = await DelegateAsync(tokenRepository.RetrieveToken());
+            var token = tokenResponse.AccessToken;
+
+            var apiClient = new HttpClient();
+
+            apiClient.SetBearerToken(token);
+
+            var idsString = string.Join("&ids=", ids.ToArray());
+            var apiResponse = await apiClient.GetAsync($"https://localhost:5004/api/account/details?ids={idsString}");
+
+            if (!apiResponse.IsSuccessStatusCode)
+            {
+                throw new RequestFailedException("Nie udało się pobrać danych.");
+            }
+
+            var responseContent = await apiResponse.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<List<IdentityServerUser>>(responseContent).Cast<User>().ToList();
+
+            return result;
+        }
 
         private async Task<TokenResponse> DelegateAsync(string userToken)
         {
@@ -117,5 +139,6 @@ namespace ExpensesAPI.Domain.Persistence
                 }
             });
         }
+
     }
 }

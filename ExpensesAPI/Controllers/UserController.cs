@@ -30,9 +30,11 @@ namespace ExpensesAPI.Controllers
         private readonly ITokenRepository tokenRepository;
         private readonly IHostingEnvironment host;
         private readonly IUnitOfWork unitOfWork;
-        private readonly IUserRepository userRepository;
+        private readonly IUserRepository<User> userRepository;
+        private readonly IUserRepository<IdentityServerUser> idsUserRepository;
 
-        public UserController(IUserRepository userRepository,
+        public UserController(IUserRepository<User> userRepository,
+            IUserRepository<IdentityServerUser> idsUserRepository,
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper,
             IScopeRepository scopeRepository,
@@ -40,6 +42,7 @@ namespace ExpensesAPI.Controllers
             IUnitOfWork unitOfWork)
         {
             this.userRepository = userRepository;
+            this.idsUserRepository = idsUserRepository;
             this.httpContextAccessor = httpContextAccessor;
             this.mapper = mapper;
             this.scopeRepository = scopeRepository;
@@ -60,7 +63,7 @@ namespace ExpensesAPI.Controllers
         }
 
         [HttpGet("api/user/list/{scopeId}")]
-        public async Task<IActionResult> GetUserList(string query)
+        public async Task<IActionResult> GetUserList(string query, int scopeId)
         {
             //return BadRequest("Not implemented");
             var sub = this.User.FindFirstValue(JwtClaimTypes.Subject);
@@ -73,16 +76,21 @@ namespace ExpensesAPI.Controllers
 
             try
             {
-                var users = await userRepository.GetUserListAsync(query, sub);
+                var idsUsers = await idsUserRepository.GetUserListAsync(query, sub);
+                var users = await userRepository.GetUserDetails(idsUsers.Select(u => u.Id).ToList());
 
-                var results = users.Select(u =>
+                var results = idsUsers.Select(u =>
                 {
                     var userResource = mapper.Map<UserResource>(u);
-                    userResource.Selected = u.ScopeUsers.Any(su => su.ScopeId == u.SelectedScopeId);
+                    var usr = users.FirstOrDefault(us => us.Id == u.Id);
+                    if(usr != null)
+                        userResource.Selected = usr
+                            .ScopeUsers
+                            .Any(su => su.ScopeId == scopeId);
                     return userResource;
                 });
 
-                return Ok(users);
+                return Ok(results);
             }
             catch (Exception e)
             {

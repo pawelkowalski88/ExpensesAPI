@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
@@ -45,6 +46,13 @@ namespace ExpensesAPI.IdentityProvider.API.Controllers
             }).ToList();
 
             return Ok(users);
+        }
+
+        [HttpGet("details")]
+        public async Task<IActionResult> GetUserDetails(List<string> ids)
+        {
+            var users = await userRepository.GetUserDetailsAsync(ids);
+            return Ok(mapper.Map<List<UserResource>>(users));
         }
 
     }
