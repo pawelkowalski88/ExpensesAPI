@@ -20,12 +20,12 @@ namespace ExpensesAPI.Controllers
     {
         private readonly ICategoryRepository repository;
         private readonly IScopeRepository scopeRepository;
-        private readonly IUserRepository userRepository;
+        private readonly IUserRepository<User> userRepository;
         private readonly IMapper mapper;
         private readonly IUnitOfWork unitOfWork;
         private readonly IHttpContextAccessor httpContextAccessor;
 
-        public CategoryController(ICategoryRepository repository, IScopeRepository scopeRepository, IUserRepository userRepository, IMapper mapper, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
+        public CategoryController(ICategoryRepository repository, IScopeRepository scopeRepository, IUserRepository<User> userRepository, IMapper mapper, IUnitOfWork unitOfWork, IHttpContextAccessor httpContextAccessor)
         {
             this.repository = repository;
             this.scopeRepository = scopeRepository;

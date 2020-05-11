@@ -24,6 +24,11 @@ namespace ExpensesAPI.IdentityProvider.API.Repositories
                 .FirstOrDefaultAsync(u => u.Id == id);
         }
 
+        public Task<List<User>> GetUserDetailsAsync(List<string> ids)
+        {
+            return context.Users.Where(u => ids.Contains(u.Id)).ToListAsync();
+        }
+
         public async Task<List<User>> GetUserListAsync(string query, string myId)
         {
             if (!string.IsNullOrWhiteSpace(query))

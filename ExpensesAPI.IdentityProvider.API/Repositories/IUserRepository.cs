@@ -9,6 +9,7 @@ namespace ExpensesAPI.IdentityProvider.API.Repositories
         Task<User> GetUserAsync(string id);
         //Task<IdentityUser> GetUserWithScopesAsync(string id);
         Task<List<User>> GetUserListAsync(string query, string myId);
+        Task<List<User>> GetUserDetailsAsync(List<string> ids);
         //Task SetSelectedScope(string userId, int scopeId);
         //Task AddUser(string id, string name);
     }

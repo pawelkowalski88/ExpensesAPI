@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ExpensesAPI.Domain.Persistence
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : IUserRepository<User>
     {
         private MainDbContext context;
         public UserRepository(MainDbContext context)
@@ -69,6 +69,11 @@ namespace ExpensesAPI.Domain.Persistence
             });
 
             await context.SaveChangesAsync();
+        }
+
+        public Task<List<User>> GetUserDetails(List<string> ids)
+        {
+            return context.Users.Include(u => u.ScopeUsers).Where(u => ids.Contains(u.Id)).ToListAsync();
         }
     }
 }

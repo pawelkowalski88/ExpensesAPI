@@ -14,6 +14,7 @@ using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using ExpensesAPI.Domain.ExternalAPIUtils;
+using ExpensesAPI.Domain.Models;
 
 namespace ExpensesAPI
 {
@@ -52,8 +53,8 @@ namespace ExpensesAPI
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IExpenseRepository, ExpenseRepository>();
             services.AddScoped<IScopeRepository, ScopeRepository>();
-            //services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IUserRepository, UserRepositoryExternalApi>();
+            services.AddScoped<IUserRepository<User>, UserRepository>();
+            services.AddScoped<IUserRepository<IdentityServerUser>, UserRepositoryExternalApi>();
             services.AddScoped<IFileImporter, CSVImporter>();
 
             services.AddScoped<ITokenRepository, LastTokenRepository>();
