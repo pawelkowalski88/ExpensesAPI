@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ExpensesAPI.Controllers;
+using ExpensesAPI.Domain.ExternalAPIUtils;
 using ExpensesAPI.Domain.Mapping;
 using ExpensesAPI.Domain.Models;
 using ExpensesAPI.Domain.Persistence;
@@ -23,17 +24,19 @@ namespace ExpensesAPITests.Controllers
     class UserControllerTests
     {
         private Mock<IScopeRepository> scopeRepository;
-        private Mock<IUserRepository> userRepository;
+        private Mock<IUserRepository<User>> userRepository;
+        private Mock<IUserRepository<IdentityServerUser>> IDuserRepository;
         private Mock<IUnitOfWork> unitOfWork;
         private IMapper mapper;
         private Mock<IHttpContextAccessor> httpContextAccessor;
         private Mock<HttpContext> httpContext;
+        private Mock<ITokenRepository> tokenRepository;
 
         [SetUp]
         public void Setup()
         {
             scopeRepository = new Mock<IScopeRepository>();
-            userRepository = new Mock<IUserRepository>();
+            userRepository = new Mock<IUserRepository<User>>();
             unitOfWork = new Mock<IUnitOfWork>();
             mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
             httpContextAccessor = new Mock<IHttpContextAccessor>();
@@ -51,10 +54,10 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task GetUserDataAsyncReturnsOK()
         {
-                var user1 = new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } };
+                var user1 = new User { UserName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } };
                 userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => user1));
 
-                var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
+                var controller = new UserController(userRepository.Object, IDuserRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, tokenRepository.Object, unitOfWork.Object);
 
                 var result = await controller.GetUserDataAsync();
                 var okResult = result as OkObjectResult;
@@ -67,7 +70,7 @@ namespace ExpensesAPITests.Controllers
         public async Task GetUserDataAsyncReturnsNotFoundOnNoUser()
         {
             httpContext.Setup(c => c.User).Returns<ClaimsPrincipal>(null);
-            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
+            var controller = new UserController(userRepository.Object, IDuserRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, tokenRepository.Object, unitOfWork.Object);
 
             var result = await controller.GetUserDataAsync();
             var notFoundResult = result as NotFoundObjectResult;
@@ -83,12 +86,12 @@ namespace ExpensesAPITests.Controllers
                 new User
                 {
                     Id = "2",
-                    FirstName = "Wojtek"
+                    UserName = "Wojtek"
                 }
             });
-            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
+            var controller = new UserController(userRepository.Object, IDuserRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, tokenRepository.Object, unitOfWork.Object);
 
-            var result = await controller.GetUserList("wojt");
+            var result = await controller.GetUserList("wojt", 1);
             var okResult = result as OkObjectResult;
             var results = okResult.Value as IEnumerable<UserResource>;
 
@@ -103,17 +106,17 @@ namespace ExpensesAPITests.Controllers
                 new User
                 {
                     Id = "1",
-                    FirstName = "Zenek"
+                    UserName = "Zenek"
                 },
                 new User
                 {
                     Id = "2",
-                    FirstName = "Wojtek"
+                    UserName = "Wojtek"
                 }
             });
-            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
+            var controller = new UserController(userRepository.Object, IDuserRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, tokenRepository.Object, unitOfWork.Object);
 
-            var result = await controller.GetUserList("k");
+            var result = await controller.GetUserList("k", 1);
             var okResult = result as OkObjectResult;
             var results = okResult.Value as IEnumerable<UserResource>;
 
@@ -125,9 +128,9 @@ namespace ExpensesAPITests.Controllers
         public async Task GetUserListReturnsNoUsersForEmptyQuery()
         {
             userRepository.Setup(r => r.GetUserListAsync("", "25")).Returns(async () => new List<User> {});
-            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
+            var controller = new UserController(userRepository.Object, IDuserRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, tokenRepository.Object, unitOfWork.Object);
 
-            var result = await controller.GetUserList("");
+            var result = await controller.GetUserList("", 1);
             var okResult = result as OkObjectResult;
             var results = okResult.Value as IEnumerable<UserResource>;
 
@@ -138,9 +141,9 @@ namespace ExpensesAPITests.Controllers
         public async Task GetUserListReturnsNoUsersForWrongQuery()
         {
             userRepository.Setup(r => r.GetUserListAsync("baba", "25")).Returns(async () => new List<User> { });
-            var controller = new UserController(userRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, unitOfWork.Object);
+            var controller = new UserController(userRepository.Object, IDuserRepository.Object, httpContextAccessor.Object, mapper, scopeRepository.Object, tokenRepository.Object, unitOfWork.Object);
 
-            var result = await controller.GetUserList("baba");
+            var result = await controller.GetUserList("baba", 1);
             var okResult = result as OkObjectResult;
             var results = okResult.Value as IEnumerable<UserResource>;
 
@@ -172,9 +175,9 @@ namespace ExpensesAPITests.Controllers
 
             if (!noUser)
             {
-                context.Users.Add(new User { FirstName = "Zenek" });
-                context.Users.Add(new User { FirstName = "Wojtek" });
-                context.Users.Add(new User { FirstName = "Krzysiek" });
+                context.Users.Add(new User { UserName = "Zenek" });
+                context.Users.Add(new User { UserName = "Wojtek" });
+                context.Users.Add(new User { UserName = "Krzysiek" });
                 context.SaveChanges();
             }
 
@@ -182,7 +185,7 @@ namespace ExpensesAPITests.Controllers
 
             context.Scopes.Add(new Scope { Name = "Test", Owner = noScope ? null : defaultUser });
             context.Scopes.Add(new Scope { Name = "Test2", Owner = noScope ? null : defaultUser });
-            context.Scopes.Add(new Scope { Name = "Test3", Owner = noScope ? null : context.Users.FirstOrDefault(u => u.FirstName == "Wojtek") });
+            context.Scopes.Add(new Scope { Name = "Test3", Owner = noScope ? null : context.Users.FirstOrDefault(u => u.UserName == "Wojtek") });
             context.Scopes.Add(new Scope { Name = "Test4", Owner = noScope ? null : defaultUser });
             context.SaveChanges();
 
@@ -198,7 +201,7 @@ namespace ExpensesAPITests.Controllers
             }
 
             var firstScope = context.Scopes.Include(s => s.ScopeUsers).FirstOrDefault(s => s.Name == "Test");
-            var lastUser = context.Users.FirstOrDefault(u => u.FirstName == "Wojtek");
+            var lastUser = context.Users.FirstOrDefault(u => u.UserName == "Wojtek");
             if (firstScope != null && lastUser != null)
             {
                 firstScope.ScopeUsers.Add(new ScopeUser { Scope = firstScope, User = lastUser });

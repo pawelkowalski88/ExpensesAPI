@@ -25,7 +25,7 @@ namespace ExpensesAPITests.Controllers
     {
         private Mock<ICategoryRepository> repository;
         private Mock<IScopeRepository> scopeRepository;
-        private Mock<IUserRepository> userRepository;
+        private Mock<IUserRepository<User>> userRepository;
         private Mock<IUnitOfWork> unitOfWork;
         private Mapper mapper;
         private Mock<MainDbContext> context;
@@ -37,7 +37,7 @@ namespace ExpensesAPITests.Controllers
         {
             repository = new Mock<ICategoryRepository>();
             scopeRepository = new Mock<IScopeRepository>();
-            userRepository = new Mock<IUserRepository>();
+            userRepository = new Mock<IUserRepository<User>>();
             unitOfWork = new Mock<IUnitOfWork>();
             mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
             context = new Mock<MainDbContext>();
@@ -59,7 +59,7 @@ namespace ExpensesAPITests.Controllers
 
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()));
 
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
 
             var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -71,7 +71,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task GetCategoriesReturnsNotFoundOnNoScopeSelected()
         {
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
 
             var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -84,7 +84,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task GetCategoriesReturnsNotFoundOnNoUserSelected()
         {
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
             httpContext.Setup(c => c.User).Returns<ClaimsPrincipal>(null);
             var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -99,7 +99,7 @@ namespace ExpensesAPITests.Controllers
         {
             repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "TestCategory" }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), false)).Returns(Task.Run(() => new List<Category>()));
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 24, Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Id = 24, Name = "Test", Owner = null } }));
 
             var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -126,7 +126,7 @@ namespace ExpensesAPITests.Controllers
         {
             repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "Category1" }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), false)).Returns(Task.Run(() => new List<Category> { new Category { Name = "Category1" } }));
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
 
             var controller = new CategoryController(repository.Object, scopeRepository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -189,7 +189,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task DeleteCategoryReturnsOK()
         {
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
             repository.Setup(r => r.GetCategory(It.IsAny<int>())).Returns(Task.Run(() => new Category { Name = "Category2" }));
             repository.Setup(r => r.GetCategory(It.IsAny<int>(), It.IsAny<bool>())).Returns(Task.Run(() => new Category { Name = "Category2" }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
@@ -231,7 +231,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task DeleteCategoryReturnsBadRequestOnExistingExpenses()
         {
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
                 .Returns(Task.Run(() => new List<Category> {
                                     new Category { Name = "Category1", ScopeId = 1 },
@@ -266,7 +266,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task DeleteCategoryReturnsNotFoundOnNotExistingCategory()
         {
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
                 .Returns(Task.Run(() => new List<Category> {
                                                     new Category { Name = "Category1", ScopeId = 1 },
@@ -297,7 +297,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task UpdateCategoryReturnsOK()
         {
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
                 .Returns(Task.Run(() => new List<Category> {
                                                     new Category { Name = "Category1", ScopeId = 1 },
@@ -340,7 +340,7 @@ namespace ExpensesAPITests.Controllers
         [Test]
         public async Task UpdateCategoryReturnsErrorOnNonExistentCategory()
         {
-            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
+            userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Name = "Test", Owner = null } }));
             repository.Setup(r => r.GetCategories(It.IsAny<int>(), It.IsAny<bool>()))
                 .Returns(Task.Run(() => new List<Category> {
                                                     new Category { Name = "Category1", ScopeId = 1 },
@@ -383,7 +383,7 @@ namespace ExpensesAPITests.Controllers
 
             if (!noUser)
             {
-                context.Users.Add(new User { FirstName = "Zenek" });
+                context.Users.Add(new User { UserName = "Zenek" });
                 context.SaveChanges();
             }
 

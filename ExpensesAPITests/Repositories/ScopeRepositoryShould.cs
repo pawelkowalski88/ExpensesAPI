@@ -18,7 +18,7 @@ namespace ExpensesAPITests.Repositories
         {
             using (var context = GetContextWithData())
             {
-                var user = context.Users.First(u => u.FirstName == "Zenek");
+                var user = context.Users.First(u => u.UserName == "Zenek");
                 var sut = new ScopeRepository(context);
                 var scopes = await sut.GetScopes(user);
 
@@ -34,7 +34,7 @@ namespace ExpensesAPITests.Repositories
         {
             using (var context = GetContextWithData())
             {
-                var user = context.Users.First(u => u.FirstName == "Tadek");
+                var user = context.Users.First(u => u.UserName == "Tadek");
                 var sut = new ScopeRepository(context);
                 var scopes = await sut.GetScopes(user);
 
@@ -144,12 +144,12 @@ namespace ExpensesAPITests.Repositories
 
             if (!noUser)
             {
-                context.Users.Add(new User { FirstName = "Zenek" });
-                context.Users.Add(new User { FirstName = "Tadek" });
+                context.Users.Add(new User { UserName = "Zenek" });
+                context.Users.Add(new User { UserName = "Tadek" });
                 context.SaveChanges();
             }
 
-            var userForScopes = context.Users.First(u => u.FirstName == "Zenek");
+            var userForScopes = context.Users.First(u => u.UserName == "Zenek");
 
             context.Scopes.Add(new Scope { Name = "Test", Owner = noScope ? null: userForScopes });
             context.Scopes.Add(new Scope { Name = "Test2", Owner = noScope ? null : userForScopes });

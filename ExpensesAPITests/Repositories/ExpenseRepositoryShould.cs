@@ -226,7 +226,7 @@ namespace ExpensesAPITests.Repositories
 
             if (!noUser)
             {
-                context.Users.Add(new User { FirstName = "Zenek" });
+                context.Users.Add(new User { UserName = "Zenek" });
                 context.SaveChanges();
             }
 

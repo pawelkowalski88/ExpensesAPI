@@ -19,14 +19,14 @@ namespace ExpensesAPITests.Repositories
             using (var context = GetContextWithData())
             {
                 var sut = new UserRepository(context);
-                var user = context.Users.First(u => u.FirstName == "Tadek");
+                var user = context.Users.First(u => u.UserName == "Tadek");
                 var scope = context.Scopes.First(s => s.Name == "Test4");
                 await sut.SetSelectedScope(user.Id, scope.Id);
                 context.SaveChanges();
 
                 var userAfterChange = context.Users
                     .Include(u => u.SelectedScope)
-                    .First(u => u.FirstName == "Tadek");
+                    .First(u => u.UserName == "Tadek");
 
                 Assert.That(userAfterChange.SelectedScope.Name, Is.EqualTo("Test4"));
             }
@@ -38,7 +38,7 @@ namespace ExpensesAPITests.Repositories
             using (var context = GetContextWithData())
             {
                 var sut = new UserRepository(context);
-                var user = context.Users.First(u => u.FirstName == "Tadek");
+                var user = context.Users.First(u => u.UserName == "Tadek");
                 var scope = context.Scopes.First(s => s.Name == "Test4");
 
                 Assert.That(async () => await sut.SetSelectedScope(user.Id, 0), Throws.TypeOf<ArgumentOutOfRangeException>());
@@ -51,7 +51,7 @@ namespace ExpensesAPITests.Repositories
             using (var context = GetContextWithData())
             {
                 var sut = new UserRepository(context);
-                var user = context.Users.First(u => u.FirstName == "Tadek");
+                var user = context.Users.First(u => u.UserName == "Tadek");
                 var scope = context.Scopes.First(s => s.Name == "Test4");
 
                 Assert.That(async () => await sut.SetSelectedScope("0", scope.Id), Throws.TypeOf<ArgumentOutOfRangeException>());
@@ -66,7 +66,7 @@ namespace ExpensesAPITests.Repositories
                 var sut = new UserRepository(context);
                 var results = await sut.GetUserListAsync("Zen", "0");
 
-                Assert.That(results.Any(u => u.FirstName == "Zenek"));
+                Assert.That(results.Any(u => u.UserName == "Zenek"));
             }
         }
 
@@ -112,7 +112,7 @@ namespace ExpensesAPITests.Repositories
             using (var context = GetContextWithData())
             {
                 var sut = new UserRepository(context);
-                var user = context.Users.First(u => u.FirstName == "Zenek");
+                var user = context.Users.First(u => u.UserName == "Zenek");
                 var result = await sut.GetUserWithScopesAsync(user.Id);
 
                 Assert.That(result.OwnedScopes.Count, Is.EqualTo(4));
@@ -158,12 +158,12 @@ namespace ExpensesAPITests.Repositories
 
             if (!noUser)
             {
-                context.Users.Add(new User { FirstName = "Zenek" });
-                context.Users.Add(new User { FirstName = "Tadek" });
+                context.Users.Add(new User { UserName = "Zenek" });
+                context.Users.Add(new User { UserName = "Tadek" });
                 context.SaveChanges();
             }
 
-            var userForScopes = context.Users.First(u => u.FirstName == "Zenek");
+            var userForScopes = context.Users.First(u => u.UserName == "Zenek");
 
             context.Scopes.Add(new Scope { Name = "Test", Owner = noScope ? null : userForScopes });
             context.Scopes.Add(new Scope { Name = "Test2", Owner = noScope ? null : userForScopes });

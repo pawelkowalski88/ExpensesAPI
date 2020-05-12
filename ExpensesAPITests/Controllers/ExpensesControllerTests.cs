@@ -23,7 +23,7 @@ namespace ExpensesAPITests.Controllers
     class ExpenseControllerTests
     {
         private Mock<IExpenseRepository> repository;
-        private Mock<IUserRepository> userRepository;
+        private Mock<IUserRepository<User>> userRepository;
         private Mock<IUnitOfWork> unitOfWork;
         private IMapper mapper;
         private Mock<IHttpContextAccessor> httpContextAccessor;
@@ -33,7 +33,7 @@ namespace ExpensesAPITests.Controllers
         public void Setup()
         {
             repository = new Mock<IExpenseRepository>();
-            userRepository = new Mock<IUserRepository>();
+            userRepository = new Mock<IUserRepository<User>>();
             unitOfWork = new Mock<IUnitOfWork>();
             mapper = new Mapper(new MapperConfiguration(cfg => cfg.AddProfile<MainMappingProfile>()));
             httpContextAccessor = new Mock<IHttpContextAccessor>();
@@ -55,7 +55,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -74,7 +74,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category, noUser: true))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek", SelectedScope = new Scope { Id = 25, Name = "Test", Owner = null } }));
                 httpContext.Setup(c => c.User).Returns<ClaimsPrincipal>(null);
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
@@ -92,7 +92,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category, noScope: true))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -112,7 +112,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
                 repository.Setup(r => r.GetExpenseAsync(It.IsAny<int>())).Returns(Task.Run(() => new Expense { CategoryId = category, Comment = "TestAdd", Details = "Details test", Value = -23.54F }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
@@ -147,7 +147,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
                 repository.Setup(r => r.GetExpenseAsync(It.IsAny<int>())).Returns(Task.Run(() => new Expense { CategoryId = category, Comment = "TestAdd", Details = "Details test", Value = -23.54F }));
                 repository.Setup(r => r.AddExpense(It.IsAny<Expense>())).Throws<ArgumentNullException>();
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
@@ -163,7 +163,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -248,7 +248,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData(out category))
             {
                 var date = DateTime.Now;
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
                 repository.Setup(r => r.GetExpensesAsync(It.IsAny<IEnumerable<int>>())).Returns(Task.Run(() => new List<Expense>
                 {
                     new Expense
@@ -309,7 +309,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
                 repository.Setup(r => r.GetExpenseAsync(It.IsAny<int>())).Returns(Task.Run(() => new Expense { CategoryId = category, Comment = "TestAdd", Details = "Details test", Value = -23.54F }));
                 repository.Setup(r => r.AddExpenses(null)).Throws<ArgumentNullException>();
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
@@ -326,7 +326,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData(out category))
             {
                 var date = DateTime.Now;
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -498,7 +498,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData(out category))
             {
                 var date = DateTime.Now;
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
                 var request = await controller.DeleteExpenses(new List<int> { 2, 23 });
@@ -515,7 +515,7 @@ namespace ExpensesAPITests.Controllers
             using (var context = GetContextWithData(out category))
             {
                 var date = DateTime.Now;
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
                 repository.Setup(r => r.DeleteExpenses(It.IsAny<List<int>>())).Throws<ArgumentNullException>();
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
@@ -533,7 +533,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
 
@@ -550,7 +550,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
                 repository.Setup(r => r.DeleteExpense(75)).Throws<ArgumentOutOfRangeException>();
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
@@ -568,7 +568,7 @@ namespace ExpensesAPITests.Controllers
             int category;
             using (var context = GetContextWithData(out category))
             {
-                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { FirstName = "Zenek" }));
+                userRepository.Setup(r => r.GetUserAsync(It.IsAny<string>())).Returns(Task.Run(() => new User { UserName = "Zenek" }));
                 repository.Setup(r => r.GetExpenseAsync(54)).Returns(Task.Run(() => new Expense { Id = 54, CategoryId = 22, Comment = "New comment" }));
 
                 var controller = new ExpenseController(repository.Object, userRepository.Object, mapper, unitOfWork.Object, httpContextAccessor.Object);
@@ -640,7 +640,7 @@ namespace ExpensesAPITests.Controllers
 
             if (!noUser)
             {
-                context.Users.Add(new User { FirstName = "Zenek" });
+                context.Users.Add(new User { UserName = "Zenek" });
                 context.SaveChanges();
             }
 
