@@ -30,7 +30,9 @@ namespace ExpensesAPI.IdentityProvider
         {
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+                    Configuration.GetConnectionString("DefaultConnection"),
+                    b => b.MigrationsHistoryTable("_EFMigrationsHistoryTableIdentity")));
+
             services.AddDefaultIdentity<User>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;

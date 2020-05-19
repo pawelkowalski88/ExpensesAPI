@@ -30,6 +30,19 @@ namespace ExpensesAPI.Domain.Persistence
         protected override void OnModelCreating(ModelBuilder builder)
         {
             //this.Database.EnsureCreated();
+            builder.Entity<Category>()
+                .HasKey(s => s.Id);
+            builder.Entity<Category>()
+                .HasOne(c => c.Scope)
+                .WithMany(s => s.Categories)
+                .HasForeignKey(c => c.ScopeId);
+
+            builder.Entity<Expense>()
+                .HasOne(e => e.Scope)
+                .WithMany(s => s.Expenses)
+                .HasForeignKey(e => e.ScopeId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
             builder.Entity<Scope>()
                 .HasOne(s => s.Owner)
                 .WithMany(u => u.OwnedScopes)

@@ -152,7 +152,7 @@ namespace ExpensesAPI.Domain.Migrations
                     b.HasOne("ExpensesAPI.Domain.Models.Scope", "Scope")
                         .WithMany("Expenses")
                         .HasForeignKey("ScopeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 

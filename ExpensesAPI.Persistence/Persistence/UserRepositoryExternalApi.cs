@@ -88,6 +88,8 @@ namespace ExpensesAPI.Domain.Persistence
         }
         public async Task<List<User>> GetUserDetails(List<string> ids)
         {
+            if (ids.Count == 0)
+                return new List<User>();
             var tokenResponse = await DelegateAsync(tokenRepository.RetrieveToken());
             var token = tokenResponse.AccessToken;
 

@@ -41,7 +41,12 @@ namespace ExpensesAPI
                     services.AddDbContext<MainDbContext>(options => options.UseSqlite("Data Source=expenses.db"));
                     break;
                 case "mssqlserver":
-                    services.AddDbContext<MainDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default"), b => b.MigrationsAssembly("ExpensesAPI.Domain")));
+                    services.AddDbContext<MainDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default"),
+                        b =>
+                        {
+                            b.MigrationsAssembly("ExpensesAPI.Domain");
+                            b.MigrationsHistoryTable("_EFMigrationsHistoryAPI");
+                        }));
                     break;
 
                 default:

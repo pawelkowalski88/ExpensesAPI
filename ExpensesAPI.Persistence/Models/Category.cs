@@ -17,8 +17,8 @@ namespace ExpensesAPI.Domain.Models
         public string Name { get; set; }
 
         public int ScopeId { get; set; }
-
         public Scope Scope { get; set; }
+
         public ICollection<Expense> Expenses { get; set; }
 
         public Category()

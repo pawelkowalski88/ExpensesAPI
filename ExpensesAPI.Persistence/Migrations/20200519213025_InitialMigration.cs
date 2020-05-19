@@ -12,7 +12,7 @@ namespace ExpensesAPI.Domain.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     CategoryId = table.Column<int>(nullable: false),
                     ScopeId = table.Column<int>(nullable: false),
                     Date = table.Column<DateTime>(nullable: false),
@@ -30,7 +30,7 @@ namespace ExpensesAPI.Domain.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(maxLength: 255, nullable: false),
                     ScopeId = table.Column<int>(nullable: false)
                 },
@@ -69,7 +69,7 @@ namespace ExpensesAPI.Domain.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     Name = table.Column<string>(nullable: false),
                     OwnerId = table.Column<string>(nullable: true)
                 },
@@ -120,7 +120,7 @@ namespace ExpensesAPI.Domain.Migrations
                 column: "ScopeId",
                 principalTable: "Scopes",
                 principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                onDelete: ReferentialAction.Restrict);
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Expenses_Categories_CategoryId",

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ExpensesAPI.Domain.Migrations
 {
     [DbContext(typeof(MainDbContext))]
-    [Migration("20200518215643_AddedSQLServerStrategy")]
-    partial class AddedSQLServerStrategy
+    [Migration("20200519213025_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -154,7 +154,7 @@ namespace ExpensesAPI.Domain.Migrations
                     b.HasOne("ExpensesAPI.Domain.Models.Scope", "Scope")
                         .WithMany("Expenses")
                         .HasForeignKey("ScopeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
