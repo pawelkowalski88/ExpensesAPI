@@ -41,7 +41,7 @@ namespace ExpensesAPI
                     services.AddDbContext<MainDbContext>(options => options.UseSqlite("Data Source=expenses.db"));
                     break;
                 case "mssqlserver":
-                    services.AddDbContext<MainDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+                    services.AddDbContext<MainDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default"), b => b.MigrationsAssembly("ExpensesAPI.Domain")));
                     break;
 
                 default:

@@ -341,3 +341,6 @@ healthchecksdb
 
 Uploads/
 expenses.db
+/ExpensesAPI/appsettings.DevAZ.json
+/ExpensesAPI.IdentityProvider.API/appsettings.DevAZ.json
+/ExpensesAPI.IdentityProvider/appsettings.DevAZ.json

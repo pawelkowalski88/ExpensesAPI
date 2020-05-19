@@ -1,5 +1,4 @@
-﻿{
-  "$schema": "http://json.schemastore.org/launchsettings.json",
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
@@ -8,14 +7,14 @@
       "sslPort": 44302
     }
   },
+  "$schema": "http://json.schemastore.org/launchsettings.json",
   "profiles": {
     "ExpensesAPI.IdentityProvider.API": {
       "commandName": "Project",
-      "launchBrowser": false,
-      "applicationUrl": "https://localhost:5004",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
-      }
+        "ASPNETCORE_ENVIRONMENT": "DevAZ"
+      },
+      "applicationUrl": "https://localhost:5004"
     }
   }
 }

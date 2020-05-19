@@ -13,11 +13,12 @@ namespace ExpensesAPI.Domain.Persistence
 
         public DbSet<User> Users { get; set; }
 
-        public MainDbContext() { }
+        public MainDbContext() 
+        {
+        }
 
         public MainDbContext(DbContextOptions<MainDbContext> options) : base(options)
         {
-            this.Database.EnsureCreated();
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -28,6 +29,7 @@ namespace ExpensesAPI.Domain.Persistence
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
+            //this.Database.EnsureCreated();
             builder.Entity<Scope>()
                 .HasOne(s => s.Owner)
                 .WithMany(u => u.OwnedScopes)
