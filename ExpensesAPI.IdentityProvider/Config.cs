@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using static IdentityServer4.IdentityServerConstants;
 
 namespace ExpensesAPI.IdentityProvider
 {
@@ -48,7 +49,6 @@ namespace ExpensesAPI.IdentityProvider
                     RequireConsent = false,
                     RequirePkce = true,
                     AllowAccessTokensViaBrowser = true,
-                   
 
                     AllowedCorsOrigins = { "http://localhost:4200" },
                     RedirectUris = { "http://localhost:4200/signin-callback" },
