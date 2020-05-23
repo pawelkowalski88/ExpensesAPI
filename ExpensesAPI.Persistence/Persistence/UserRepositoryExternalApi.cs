@@ -2,6 +2,7 @@
 using ExpensesAPI.Domain.Models;
 using IdentityModel.Client;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.SecurityTokenService;
 using Newtonsoft.Json;
 using System;
@@ -16,11 +17,13 @@ namespace ExpensesAPI.Domain.Persistence
     {
         private MainDbContext context;
         private readonly ITokenRepository tokenRepository;
+        private readonly IConfiguration configuration;
 
-        public UserRepositoryExternalApi(MainDbContext context, ITokenRepository tokenRepository)
+        public UserRepositoryExternalApi(MainDbContext context, ITokenRepository tokenRepository, IConfiguration configuration)
         {
             this.context = context;
             this.tokenRepository = tokenRepository;
+            this.configuration = configuration;
         }
         public async Task AddUser(string id, string name)
         {
@@ -53,7 +56,9 @@ namespace ExpensesAPI.Domain.Persistence
 
             apiClient.SetBearerToken(token);
 
-            var apiResponse = await apiClient.GetAsync($"https://localhost:5004/api/account/list?query={query}");
+            var url = configuration["ExpensesIdentityAPI"];
+
+            var apiResponse = await apiClient.GetAsync($"{url}/api/account/list?query={query}");
 
             if (!apiResponse.IsSuccessStatusCode)
             {

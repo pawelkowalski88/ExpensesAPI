@@ -1,9 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.EntityFrameworkCore;
 using ExpensesAPI.IdentityProvider.Data;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +10,8 @@ using IdentityServer4.Services;
 using ExpensesAPI.IdentityProvider.Repositories;
 using System.Reflection;
 using IdentityServer4.Validation;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace ExpensesAPI.IdentityProvider
 {
@@ -31,7 +30,9 @@ namespace ExpensesAPI.IdentityProvider
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection"),
-                    b => b.MigrationsHistoryTable("_EFMigrationsHistoryTableIdentity")));
+                    b => { 
+                        b.MigrationsHistoryTable("_EFMigrationsHistoryTableIdentity");
+                    }));
 
             services.AddDefaultIdentity<User>(options =>
             {
@@ -46,9 +47,30 @@ namespace ExpensesAPI.IdentityProvider
             services.AddTransient<IProfileService, IdentityProfileService>();
 
             services.AddIdentityServer()
-                .AddInMemoryIdentityResources(Config.Ids)
-                .AddInMemoryApiResources(Config.Apis)
-                .AddInMemoryClients(Config.Clients)
+                //.AddInMemoryIdentityResources(Config.Ids)
+                //.AddInMemoryApiResources(Config.Apis)
+                //.AddInMemoryClients(Config.Clients)
+                .AddConfigurationStore(o =>
+                {
+                    o.ConfigureDbContext = builder =>
+                        builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                            b => {
+                                b.MigrationsHistoryTable("_EFMigrationsHistoryConfigurationStore");
+                                b.MigrationsAssembly("ExpensesAPI.IdentityProvider");
+                            });
+                })
+                .AddOperationalStore(o =>
+                {
+                    o.ConfigureDbContext = builder =>
+                        builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                            b =>
+                            {
+                                b.MigrationsHistoryTable("_EFMigrationsHistoryCOperationalStore");
+                                b.MigrationsAssembly("ExpensesAPI.IdentityProvider");
+                            });
+                    o.EnableTokenCleanup = true;
+                    o.TokenCleanupInterval = 30;
+                })
                 .AddDeveloperSigningCredential()
                 .AddAspNetIdentity<User>()
                 .AddProfileService<IdentityProfileService>();
