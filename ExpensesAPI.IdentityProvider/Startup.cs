@@ -10,6 +10,8 @@ using IdentityServer4.Services;
 using ExpensesAPI.IdentityProvider.Repositories;
 using System.Reflection;
 using IdentityServer4.Validation;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
 
 namespace ExpensesAPI.IdentityProvider
 {

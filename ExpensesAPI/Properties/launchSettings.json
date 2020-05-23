@@ -14,7 +14,9 @@
       "launchBrowser": false,
       "applicationUrl": "https://localhost:5001",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "DevAZ"
+        "ASPNETCORE_ENVIRONMENT": "DevAZ",
+        "IdentityProviderURL": "https://localhost:5000",
+        "ExpensesIdentityAPI": "https://localhost:5004"
       }
     }
   }
