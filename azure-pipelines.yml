@@ -35,3 +35,5 @@ steps:
     appType: 'webApp'
     WebAppName: 'costbuster-idp'
     packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+    enableCustomDeployment: true
+    DeploymentType: 'webDeploy'
