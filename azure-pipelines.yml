@@ -37,3 +37,4 @@ steps:
     packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
+    TakeAppOfflineFlag: false
