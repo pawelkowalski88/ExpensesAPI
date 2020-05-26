@@ -13,7 +13,8 @@
       "launchBrowser": false,
       "applicationUrl": "https://localhost:5000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "DevAZ"
+        "ASPNETCORE_ENVIRONMENT": "DevAZ",
+        "CORS": "http://localhost:4200"
       }
     }
   }

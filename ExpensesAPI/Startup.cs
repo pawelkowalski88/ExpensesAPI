@@ -66,16 +66,6 @@ namespace ExpensesAPI
 
             services.AddAutoMapper(Assembly.Load("ExpensesAPI.Domain"), Assembly.Load("ExpensesAPI.SimpleJWTAuth"));
 
-            //services.AddSimpleJWTAuth<User, MainDbContext>(Configuration);
-
-            //services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
-            //    .AddJwtBearer(options =>
-            //    {
-            //        options.Authority = "https://localhost:5000";
-            //        options.Audience = "ExpensesAPI";
-            //    });
-
-
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(o =>
                 {
@@ -100,7 +90,7 @@ namespace ExpensesAPI
                 options.AddPolicy("AllowSpecificOrigins",
                 b =>
                 {
-                    b.WithOrigins("http://localhost:4200")
+                    b.WithOrigins(Configuration["CORS"])
                         .AllowAnyHeader()
                         .AllowAnyMethod();
                 });

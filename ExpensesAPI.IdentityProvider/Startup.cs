@@ -85,7 +85,7 @@ namespace ExpensesAPI.IdentityProvider
                 opts.AddPolicy(name: "CORSPolicy",
                      builder =>
                      {
-                         builder.WithOrigins("http://localhost:4200")
+                         builder.WithOrigins(Configuration["CORS"])
                             .AllowAnyHeader()
                             .AllowAnyMethod();
                      });

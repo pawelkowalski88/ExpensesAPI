@@ -16,7 +16,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "DevAZ",
         "IdentityProviderURL": "https://localhost:5000",
-        "ExpensesIdentityAPI": "https://localhost:5004"
+        "ExpensesIdentityAPI": "https://localhost:5004",
+        "CORS": "http://localhost:4200"
       }
     }
   }
