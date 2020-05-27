@@ -103,7 +103,7 @@ namespace ExpensesAPI.Domain.Persistence
             apiClient.SetBearerToken(token);
 
             var idsString = string.Join("&ids=", ids.ToArray());
-            var apiResponse = await apiClient.GetAsync($"{configuration["IExpensesIdentityAPI"]}/api/account/details?ids={idsString}");
+            var apiResponse = await apiClient.GetAsync($"{configuration["ExpensesIdentityAPI"]}/api/account/details?ids={idsString}");
 
             if (!apiResponse.IsSuccessStatusCode)
             {
