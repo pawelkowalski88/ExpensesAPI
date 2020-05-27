@@ -12,7 +12,8 @@
     "ExpensesAPI.IdentityProvider.API": {
       "commandName": "Project",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "DevAZ"
+        "ASPNETCORE_ENVIRONMENT": "DevAZ",
+        "IdentityProviderURL" : "https://localhost:5000"
       },
       "applicationUrl": "https://localhost:5004"
     }

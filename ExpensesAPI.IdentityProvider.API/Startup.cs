@@ -47,7 +47,7 @@ namespace ExpensesAPI.IdentityProvider.API
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(o =>
                  {
-                     o.Authority = "https://localhost:5000";
+                     o.Authority = Configuration["IdentityProviderURL"];
                      o.ApiName = "ExpensesIdentityServerUsersAPI";
                      o.RequireHttpsMetadata = false;
                  });
