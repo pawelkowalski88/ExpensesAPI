@@ -103,7 +103,7 @@ namespace ExpensesAPI.Domain.Persistence
             apiClient.SetBearerToken(token);
 
             var idsString = string.Join("&ids=", ids.ToArray());
-            var apiResponse = await apiClient.GetAsync($"https://localhost:5004/api/account/details?ids={idsString}");
+            var apiResponse = await apiClient.GetAsync($"{configuration["IExpensesIdentityAPI"]}/api/account/details?ids={idsString}");
 
             if (!apiResponse.IsSuccessStatusCode)
             {
@@ -120,7 +120,7 @@ namespace ExpensesAPI.Domain.Persistence
         {
             var client = new HttpClient();
 
-            var disco = await client.GetDiscoveryDocumentAsync("https://localhost:5000");
+            var disco = await client.GetDiscoveryDocumentAsync(configuration["IdentityProviderURL"]);
             if (disco.IsError) throw new Exception(disco.Error);
 
             var payload = new
@@ -137,7 +137,7 @@ namespace ExpensesAPI.Domain.Persistence
                 GrantType = "delegation",
 
                 ClientId = "ExpensesAPIClient",
-                ClientSecret = "D7t7r4rahf9ZyyMweEeyKazeDPOV5vca",
+                ClientSecret = configuration["ExpensesIdentityAPIClientSecret"],
 
                 Parameters =
                 {
