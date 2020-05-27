@@ -20,20 +20,20 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: 'ExpensesAPI.IdentityProvider/*.csproj'
+    projects: 'ExpensesAPI/*.csproj'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
     publishWebProjects: false
-    projects: 'ExpensesAPI.IdentityProvider/*.csproj'
+    projects: 'ExpensesAPI/*.csproj'
 
 - task: AzureRmWebAppDeployment@4
   inputs:
     ConnectionType: 'AzureRM'
     azureSubscription: 'Kowalski-Test(6d635d61-e1e2-468f-bebe-72f77e443c43)'
     appType: 'webApp'
-    WebAppName: 'costbuster-idp'
+    WebAppName: 'costbuster-api'
     packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
     enableCustomDeployment: true
     DeploymentType: 'webDeploy'
