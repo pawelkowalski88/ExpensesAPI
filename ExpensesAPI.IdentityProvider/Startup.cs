@@ -12,6 +12,7 @@ using System.Reflection;
 using IdentityServer4.Validation;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
+using System;
 
 namespace ExpensesAPI.IdentityProvider
 {
@@ -28,7 +29,7 @@ namespace ExpensesAPI.IdentityProvider
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlServer(
+                options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection"),
                     b => { 
                         b.MigrationsHistoryTable("_EFMigrationsHistoryTableIdentity");
@@ -52,8 +53,15 @@ namespace ExpensesAPI.IdentityProvider
                 //.AddInMemoryClients(Config.Clients)
                 .AddConfigurationStore(o =>
                 {
+                    // o.ConfigureDbContext = builder =>
+                    //     builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                    //         b => {
+                    //             b.MigrationsHistoryTable("_EFMigrationsHistoryConfigurationStore");
+                    //             b.MigrationsAssembly("ExpensesAPI.IdentityProvider");
+                    //         });
+
                     o.ConfigureDbContext = builder =>
-                        builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                        builder.UseSqlite("Data Source=ConfigurationDatabase.db",                   
                             b => {
                                 b.MigrationsHistoryTable("_EFMigrationsHistoryConfigurationStore");
                                 b.MigrationsAssembly("ExpensesAPI.IdentityProvider");
@@ -61,13 +69,21 @@ namespace ExpensesAPI.IdentityProvider
                 })
                 .AddOperationalStore(o =>
                 {
+                    // o.ConfigureDbContext = builder =>
+                    //     builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
+                    //         b =>
+                    //         {
+                    //             b.MigrationsHistoryTable("_EFMigrationsHistoryCOperationalStore");
+                    //             b.MigrationsAssembly("ExpensesAPI.IdentityProvider");
+                    //         });
+
                     o.ConfigureDbContext = builder =>
-                        builder.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"),
-                            b =>
-                            {
-                                b.MigrationsHistoryTable("_EFMigrationsHistoryCOperationalStore");
+                        builder.UseSqlite("Data Source=OperationalDatabase.db",                   
+                            b => {
+                                b.MigrationsHistoryTable("_EFMigrationsHistoryConfigurationStore");
                                 b.MigrationsAssembly("ExpensesAPI.IdentityProvider");
                             });
+
                     o.EnableTokenCleanup = true;
                     o.TokenCleanupInterval = 30;
                 })
@@ -95,6 +111,7 @@ namespace ExpensesAPI.IdentityProvider
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            InitializeDatabase(app);
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -124,6 +141,11 @@ namespace ExpensesAPI.IdentityProvider
                 endpoints.MapControllers();
                 endpoints.MapRazorPages();
             });
+        }
+
+        private void InitializeDatabase(IApplicationBuilder app)
+        {
+            //app.ApplicationServices.GetService(DbContext<)
         }
     }
 }
